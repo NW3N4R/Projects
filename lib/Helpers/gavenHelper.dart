@@ -40,7 +40,7 @@ class UserData {
     required this.address,
     required this.phoneNo,
 
-  }): date = '$year' + ' - $month - ' + '$day';
+  }): date = '$year - $month - $day';
 
   factory UserData.fromJson(Map<String, dynamic> json) {
     return UserData(

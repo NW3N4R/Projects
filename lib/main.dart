@@ -56,7 +56,7 @@ class HomePage extends State<MainPage> {
     try {
       final apiHelper = HomeHelper();
       data = await apiHelper.fetchData();
-      data.forEach((userData) {
+      for (var userData in data) {
         Map<String, dynamic> userMap = {
           'famCount': userData.Families,
           'gavenCount': userData.GavenRows,
@@ -92,7 +92,7 @@ class HomePage extends State<MainPage> {
           billedCount = userData.Billed;
           wholeDbCount = userData.wholedb;
         });
-      });
+      }
 
       print('Apollo Home Statics Has been Retreived Successfuly');
     } catch (e) {

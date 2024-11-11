@@ -54,7 +54,7 @@ class GavenHome extends State<MainPage> {
     try {
       final apiHelper = GavenHelper();
       data = await apiHelper.fetchData();
-      data.forEach((userData) {
+      for (var userData in data) {
         Map<String, dynamic> userMap = {
           'id': userData.id,
           'name': userData.name,
@@ -68,13 +68,13 @@ class GavenHome extends State<MainPage> {
           'date': userData.date
         };
         jsonData.add(userMap);
-      });
+      }
       setState(() {
         rowCounts = jsonData.length.toString();
         moneySum = 0;
-        jsonData.forEach((element) {
+        for (var element in jsonData) {
           moneySum += double.parse(element['money']);
-        });
+        }
       });
 
       print('Apollo Gaven Datas Has been Retreived Successfuly');
@@ -357,9 +357,9 @@ class GavenHome extends State<MainPage> {
 
                               rowCounts = jsonData.length.toString();
                               moneySum = 0;
-                              jsonData.forEach((element) {
+                              for (var element in jsonData) {
                                 moneySum += double.parse(element['money']);
-                              });
+                              }
                             });
                           }
                           //user wants only search by year
@@ -388,9 +388,9 @@ class GavenHome extends State<MainPage> {
 
                               rowCounts = jsonData.length.toString();
                               moneySum = 0;
-                              jsonData.forEach((element) {
+                              for (var element in jsonData) {
                                 moneySum += double.parse(element['money']);
-                              });
+                              }
                             });
                           }
                           //if user searchs only by month and year
@@ -419,9 +419,9 @@ class GavenHome extends State<MainPage> {
 
                               rowCounts = jsonData.length.toString();
                               moneySum = 0;
-                              jsonData.forEach((element) {
+                              for (var element in jsonData) {
                                 moneySum += double.parse(element['money']);
-                              });
+                              }
                             });
                           }
                         }
@@ -432,7 +432,7 @@ class GavenHome extends State<MainPage> {
                             setState(() {
                               jsonData.clear();
 
-                              data.forEach((userData) {
+                              for (var userData in data) {
                                 if (userData.name.contains(namesearchstr) &&
                                     userData.day == daysearchstr &&
                                     userData.month == monthsearchstr &&
@@ -451,13 +451,13 @@ class GavenHome extends State<MainPage> {
                                   };
                                   jsonData.add(userMap);
                                 }
-                              });
+                              }
 
                               rowCounts = jsonData.length.toString();
                               moneySum = 0;
-                              jsonData.forEach((element) {
+                              for (var element in jsonData) {
                                 moneySum += double.parse(element['money']);
-                              });
+                              }
                             });
                           }
                           //if user searchs only by month and year
@@ -465,7 +465,7 @@ class GavenHome extends State<MainPage> {
                             setState(() {
                               jsonData.clear();
 
-                              data.forEach((userData) {
+                              for (var userData in data) {
                                 if (userData.name.contains(namesearchstr) &&
                                     userData.month == monthsearchstr &&
                                     userData.year == yearsearchstr) {
@@ -483,13 +483,13 @@ class GavenHome extends State<MainPage> {
                                   };
                                   jsonData.add(userMap);
                                 }
-                              });
+                              }
 
                               rowCounts = jsonData.length.toString();
                               moneySum = 0;
-                              jsonData.forEach((element) {
+                              for (var element in jsonData) {
                                 moneySum += double.parse(element['money']);
-                              });
+                              }
                             });
                           }
                         }
@@ -499,7 +499,7 @@ class GavenHome extends State<MainPage> {
                         setState(() {
                           jsonData.clear();
 
-                          data.forEach((userData) {
+                          for (var userData in data) {
                             if (userData.name.contains(namesearchstr)) {
                               Map<String, dynamic> userMap = {
                                 'id': userData.id,
@@ -515,13 +515,13 @@ class GavenHome extends State<MainPage> {
                               };
                               jsonData.add(userMap);
                             }
-                          });
+                          }
 
                           rowCounts = jsonData.length.toString();
                           moneySum = 0;
-                          jsonData.forEach((element) {
+                          for (var element in jsonData) {
                             moneySum += double.parse(element['money']);
-                          });
+                          }
                         });
                       }
                     },
