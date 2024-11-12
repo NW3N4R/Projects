@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:sangarflutter/Helpers/familiesHelper.dart';
-import 'package:sangarflutter/Updateres/gavenupdater.dart';
-import 'package:sangarflutter/Uploaders/gavenUplaoder.dart';
-import 'package:sangarflutter/mydrawer.dart';
+import 'package:garmian_house_of_charity/Helpers/familiesHelper.dart';
+import 'package:garmian_house_of_charity/Updateres/gavenupdater.dart';
+import 'package:garmian_house_of_charity/Uploaders/gavenUplaoder.dart';
+import 'package:garmian_house_of_charity/mydrawer.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
 void main() {

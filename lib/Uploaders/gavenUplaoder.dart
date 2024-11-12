@@ -1,8 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:sangarflutter/Views/gavenviews.dart';
+import 'package:garmian_house_of_charity/Views/gavenviews.dart';
 import 'package:http/http.dart' as http;
 
 // ignore: must_be_immutable
@@ -82,11 +81,9 @@ class HomePage extends State<MainGavenUploader> {
         }));
     if (response.statusCode == 200) {
       print('Apollo the response code is OK -- uploading');
-      Fluttertoast.showToast(msg: 'تۆمارکردن سەرکەوتوو بوو');
     } else {
       print('Apollo the response code is ${response.statusCode} --uploading');
       // print('Apollo the param we sent was ${model.name} --uploading');
-      Fluttertoast.showToast(msg: 'هەڵەیەک ڕوویدا');
     }
   }
 

@@ -2,8 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:sangarflutter/Views/gavenviews.dart';
+import 'package:garmian_house_of_charity/Views/gavenviews.dart';
 import 'package:http/http.dart' as http;
 
 late String strId,
@@ -115,11 +114,9 @@ class HomePage extends State<MainGavenUpdater> {
         }));
     if (response.statusCode == 200) {
       print('Apollo the response code is OK');
-              Fluttertoast.showToast(msg: 'نوێکردنەو سەرکەوتوو بوو');
 
     } else {
       print('Apollo the response code is ${response.statusCode}');
-                      Fluttertoast.showToast(msg: 'هەڵەیەک ڕوویدا');
 
     }
   }
@@ -140,11 +137,9 @@ class HomePage extends State<MainGavenUpdater> {
       );
       if (response.statusCode == 200) {
         print('Apollo the response code is OK -- deleting');
-        Fluttertoast.showToast(msg: 'سڕینەوە سەرکەوتوو بوو');
       } else {
         print('Apollo the response code is ${response.statusCode} -- deleting');
         print('Apollo the id we sent was $strId -- deleting');
-                Fluttertoast.showToast(msg: 'هەڵەیەک ڕوویدا');
 
       }
     }

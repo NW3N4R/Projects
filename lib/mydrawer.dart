@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:sangarflutter/Views/familyviews.dart';
-import 'package:sangarflutter/Views/gavenviews.dart';
-import 'package:sangarflutter/main.dart';
+import 'package:garmian_house_of_charity/Views/familyviews.dart';
+import 'package:garmian_house_of_charity/Views/gavenviews.dart';
+import 'package:garmian_house_of_charity/main.dart';
 // ignore: must_be_immutable
 class MyDrawer extends StatelessWidget {
   int selectedIndex;
@@ -73,42 +73,15 @@ class MyDrawer extends StatelessWidget {
                       borderRadius: BorderRadius.circular(10)),
                   child: ListTile(
                     leading: Icon(
-                      Icons.family_restroom,
-                      color: selectedIndex == 2
-                          ? Colors.blue.shade300
-                          : Colors.black,
-                    ),
-                    title: Text(
-                      'خشتەی خێزان',
-                      style: TextStyle(
-                        color: selectedIndex == 2
-                            ? Colors.blue.shade300
-                            : Colors.black,
-                      ),
-                    ),
-                    onTap: () {
-                      Navigator.of(context).push(MaterialPageRoute(
-                          builder: (context) => const familyviews()));
-                    },
-                  )),
-              Container(
-                  margin: const EdgeInsets.only(top: 10),
-                  decoration: BoxDecoration(
-                      color: selectedIndex == 3
-                          ? Colors.blue.shade50
-                          : Colors.transparent,
-                      borderRadius: BorderRadius.circular(10)),
-                  child: ListTile(
-                    leading: Icon(
                       Icons.attach_money_sharp,
-                      color: selectedIndex == 3
+                      color: selectedIndex == 2
                           ? Colors.blue.shade300
                           : Colors.black,
                     ),
                     title: Text(
                       'خشتەی بەخشراو',
                       style: TextStyle(
-                        color: selectedIndex == 3
+                        color: selectedIndex == 2
                             ? Colors.blue.shade300
                             : Colors.black,
                       ),
@@ -226,168 +199,7 @@ class MyDrawer extends StatelessWidget {
                     //       builder: (context) => const LongSickView()));
                     // },
                   )),
-              Container(
-                  margin: const EdgeInsets.only(top: 10),
-                  decoration: BoxDecoration(
-                      color: selectedIndex == 8
-                          ? Colors.blue.shade50
-                          : Colors.transparent,
-                      borderRadius: BorderRadius.circular(10)),
-                  child: ListTile(
-                    leading: Icon(
-                      Icons.child_friendly,
-                      color: selectedIndex == 8
-                          ? Colors.blue.shade300
-                          : Colors.black,
-                    ),
-                    title: Text(
-                      'خشتەی منداڵانی بێ ناز',
-                      style: TextStyle(
-                        color: selectedIndex == 8
-                            ? Colors.blue.shade300
-                            : Colors.black,
-                      ),
-                    ),
-                    // onTap: () {
-                    //   Navigator.of(context).push(MaterialPageRoute(
-                    //       builder: (context) => const OrphansView()));
-                    // },
-                  )),
-              Container(
-                  margin: const EdgeInsets.only(top: 10),
-                  decoration: BoxDecoration(
-                      color: selectedIndex == 9
-                          ? Colors.blue.shade50
-                          : Colors.transparent,
-                      borderRadius: BorderRadius.circular(10)),
-                  child: ListTile(
-                    leading: Icon(
-                      Icons.heart_broken,
-                      color: selectedIndex == 9
-                          ? Colors.blue.shade300
-                          : Colors.black,
-                    ),
-                    title: Text(
-                      'خشتەی جیابوونەوە',
-                      style: TextStyle(
-                        color: selectedIndex == 9
-                            ? Colors.blue.shade300
-                            : Colors.black,
-                      ),
-                    ),
-                    // onTap: () {
-                    //   Navigator.of(context).push(MaterialPageRoute(
-                    //       builder: (context) => const DevorcedView()));
-                    // },
-                  )),
-              Container(
-                  margin: const EdgeInsets.only(top: 10),
-                  decoration: BoxDecoration(
-                      color: selectedIndex == 10
-                          ? Colors.blue.shade50
-                          : Colors.transparent,
-                      borderRadius: BorderRadius.circular(10)),
-                  child: ListTile(
-                    leading: Icon(
-                      Icons.food_bank,
-                      color: selectedIndex == 10
-                          ? Colors.blue.shade300
-                          : Colors.black,
-                    ),
-                    title: Text(
-                      'خشتەی هەژاران',
-                      style: TextStyle(
-                        color: selectedIndex == 10
-                            ? Colors.blue.shade300
-                            : Colors.black,
-                      ),
-                    ),
-                    // onTap: () {
-                    //   Navigator.of(context).push(MaterialPageRoute(
-                    //       builder: (context) => const PoorsView()));
-                    // },
-                  )),
-              Container(
-                  margin: const EdgeInsets.only(top: 10),
-                  decoration: BoxDecoration(
-                      color: selectedIndex == 11
-                          ? Colors.blue.shade50
-                          : Colors.transparent,
-                      borderRadius: BorderRadius.circular(10)),
-                  child: ListTile(
-                    leading: Icon(
-                      Icons.man,
-                      color: selectedIndex == 11
-                          ? Colors.blue.shade300
-                          : Colors.black,
-                    ),
-                    title: Text(
-                      'خشتەی بێ کەسان',
-                      style: TextStyle(
-                        color: selectedIndex == 11
-                            ? Colors.blue.shade300
-                            : Colors.black,
-                      ),
-                    ),
-                    // onTap: () {
-                    //   Navigator.of(context).push(MaterialPageRoute(
-                    //       builder: (context) => const AloneView()));
-                    // },
-                  )),
-              Container(
-                  margin: const EdgeInsets.only(top: 10),
-                  decoration: BoxDecoration(
-                      color: selectedIndex == 12
-                          ? Colors.blue.shade50
-                          : Colors.transparent,
-                      borderRadius: BorderRadius.circular(10)),
-                  child: ListTile(
-                    leading: Icon(
-                      Icons.note_alt,
-                      color: selectedIndex == 12
-                          ? Colors.blue.shade300
-                          : Colors.black,
-                    ),
-                    title: Text(
-                      'تێبینیەکان',
-                      style: TextStyle(
-                        color: selectedIndex == 12
-                            ? Colors.blue.shade300
-                            : Colors.black,
-                      ),
-                    ),
-                    // onTap: () {
-                    //   Navigator.of(context).push(MaterialPageRoute(
-                    //       builder: (context) => const NoteView()));
-                    // },
-                  )),
-              Container(
-                  margin: const EdgeInsets.only(top: 10),
-                  decoration: BoxDecoration(
-                      color: selectedIndex == 13
-                          ? Colors.blue.shade50
-                          : Colors.transparent,
-                      borderRadius: BorderRadius.circular(10)),
-                  child: ListTile(
-                    leading: Icon(
-                      Icons.book,
-                      color: selectedIndex == 13
-                          ? Colors.blue.shade300
-                          : Colors.black,
-                    ),
-                    title: Text(
-                      'نووسراوی فەرمی',
-                      style: TextStyle(
-                        color: selectedIndex == 13
-                            ? Colors.blue.shade300
-                            : Colors.black,
-                      ),
-                    ),
-                    // onTap: () {
-                    //   Navigator.of(context).push(MaterialPageRoute(
-                    //       builder: (context) => const WrittenView()));
-                    // },
-                  )),
+     
               Container(
                   margin: const EdgeInsets.only(top: 10),
                   decoration: BoxDecoration(
@@ -413,6 +225,33 @@ class MyDrawer extends StatelessWidget {
                     // onTap: () {
                     //   Navigator.of(context).push(MaterialPageRoute(
                     //       builder: (context) => const MonthlyPaidViews()));
+                    // },
+                  )),
+                    Container(
+                  margin: const EdgeInsets.only(top: 10),
+                  decoration: BoxDecoration(
+                      color: selectedIndex == 12
+                          ? Colors.blue.shade50
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(10)),
+                  child: ListTile(
+                    leading: Icon(
+                      Icons.note_alt,
+                      color: selectedIndex == 12
+                          ? Colors.blue.shade300
+                          : Colors.black,
+                    ),
+                    title: Text(
+                      'تێبینیەکان',
+                      style: TextStyle(
+                        color: selectedIndex == 12
+                            ? Colors.blue.shade300
+                            : Colors.black,
+                      ),
+                    ),
+                    // onTap: () {
+                    //   Navigator.of(context).push(MaterialPageRoute(
+                    //       builder: (context) => const NoteView()));
                     // },
                   )),
               Container(

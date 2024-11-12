@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:sangarflutter/Helpers/homeHelper.dart';
-import 'package:sangarflutter/Views/gavenviews.dart';
-import 'package:sangarflutter/mydrawer.dart';
+import 'package:garmian_house_of_charity/Helpers/homeHelper.dart';
+import 'package:garmian_house_of_charity/Views/gavenviews.dart';
+import 'package:garmian_house_of_charity/mydrawer.dart';
 import 'package:flutter/services.dart';
 
 void main() {
