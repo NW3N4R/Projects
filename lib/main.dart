@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:garmian_house_of_charity/Helpers/homeHelper.dart';
-import 'package:garmian_house_of_charity/Views/gavenviews.dart';
+import 'package:garmian_house_of_charity/Helpers/configureapi.dart';
+import 'package:garmian_house_of_charity/Models/homemodel.dart';
 import 'package:garmian_house_of_charity/mydrawer.dart';
 import 'package:flutter/services.dart';
 
@@ -30,76 +30,9 @@ class MainPage extends StatefulWidget {
   HomePage createState() => HomePage();
 }
 
-// List<Map<String, dynamic>> jsonData = [];
-List<HomeModel> data = [];
+String totalRow = '';
 
 class HomePage extends State<MainPage> {
-  dynamic famcount = "0",
-      gavenrowcount = "0",
-      gavenmoneycuont = "0",
-      surgeryCount = "0",
-      billedCount = "0",
-      disabledCount = "0",
-      longSickCount = "0",
-      poorsCount = "0",
-      aloneCount = "0",
-      devorcedCount = "0",
-      orphansCount = "0",
-      notesCount = "0",
-      writtenCount = "0",
-      monthlyPaidCount = "0";
-  int wholeDbCount = 0;
-
-  Future<void> fetchData() async {
-    jsonData.clear();
-
-    try {
-      final apiHelper = HomeHelper();
-      data = await apiHelper.fetchData();
-      for (var userData in data) {
-        Map<String, dynamic> userMap = {
-          'famCount': userData.Families,
-          'gavenCount': userData.GavenRows,
-          'gavenMoney': userData.GavenMoney,
-          'alone': userData.Alone,
-          'divorced': userData.Divorced,
-          'disabled': userData.Disabled,
-          'billed': userData.Billed,
-          'longSick': userData.LongSick,
-          'monthlyPaid': userData.MonthlyPaid,
-          'noteCount': userData.Notes,
-          'orphans': userData.Orphans,
-          'poors': userData.poors,
-          'surgeryCount': userData.surgery,
-          'writtenCount': userData.written,
-          'wholeDb': userData.wholedb,
-        };
-        jsonData.add(userMap);
-        setState(() {
-          famcount = userData.Families;
-          gavenmoneycuont = userData.GavenMoney;
-          aloneCount = userData.Alone;
-          surgeryCount = userData.surgery;
-          writtenCount = userData.written;
-          notesCount = userData.Notes;
-          disabledCount = userData.Disabled;
-          devorcedCount = userData.Divorced;
-          gavenrowcount = userData.GavenRows;
-          poorsCount = userData.poors;
-          orphansCount = userData.Orphans;
-          monthlyPaidCount = userData.MonthlyPaid;
-          longSickCount = userData.LongSick;
-          billedCount = userData.Billed;
-          wholeDbCount = userData.wholedb;
-        });
-      }
-
-      print('Apollo Home Statics Has been Retreived Successfuly');
-    } catch (e) {
-      print('Apollo Error fetching datas of Home Statics: $e');
-    }
-  }
-
   @override
   void initState() {
     super.initState();
@@ -107,7 +40,25 @@ class HomePage extends State<MainPage> {
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
-    fetchData();
+    _loadDataOnStart();
+  }
+
+  Iterable<HomeModel>? mainlist = [];
+  Future<void> _loadDataOnStart() async {
+    // Call the API using the `requestData` method
+    List<HomeModel>? data = await ConfigureApi()
+        .requestData<HomeModel>("home", (json) => HomeModel.fromJson(json));
+    if (data != null) {
+      setState(() {
+        mainlist = data
+            .where((x) => !x.title.contains('کۆی ناوە تۆمارکراوەکان'))
+            .toList()
+          ..sort((a, b) => b.number.compareTo(a.number));
+        totalRow = data
+            .firstWhere((x) => x.title.contains('کۆی ناوە تۆمارکراوەکان'))
+            .no;
+      });
+    } else {}
   }
 
   @override
@@ -133,7 +84,7 @@ class HomePage extends State<MainPage> {
           elevation: 0,
           title: const Text(
             'ماڵی خێرخوازان و هەژارانی گەرمیان',
-            style: TextStyle(color: Colors.black),
+            style: TextStyle(color: Colors.black, fontSize: 18),
           ),
         ),
         body: SingleChildScrollView(
@@ -152,259 +103,70 @@ class HomePage extends State<MainPage> {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Colors.white,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w900,
                       fontSize: 19,
                     ),
                   ),
                   Text(
-                    '$wholeDbCount هێلی دیاری کراو لە سیستەمەکەدا نووسراوە',
+                    '$totalRow هێلی دیاری کراو لە سیستەمەکەدا نووسراوە',
                     textAlign: TextAlign.center,
                     style: const TextStyle(
-                      color: Colors.white,
-                    ),
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold),
                   ),
                 ]),
               )),
-          Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Expanded(
-                  child: Container(
-                      padding: const EdgeInsets.only(top: 10, bottom: 10),
-                      margin: const EdgeInsets.all(5),
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(4),
-                          border: Border.all(color: Colors.blue.shade100)),
-                      child: Column(children: [
-                        Text(
-                          famcount.toString(),
-                          style: const TextStyle(color: Colors.blue),
+          DataTable(
+            columns: [
+              DataColumn(
+                label: const Text(
+                  'خشتە',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                onSort: (columnIndex, ascending) {},
+              ),
+              const DataColumn(
+                label: Text(
+                  'ژمارە',
+                  style: TextStyle(
+                    color: Colors.blue,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ],
+            rows: mainlist?.map((model) {
+                  return DataRow(cells: [
+                    DataCell(
+                      Text(
+                        model.title,
+                        style: const TextStyle(
+                          color: Colors.black87,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
                         ),
-                        const Text(
-                          'خشتەی خێزان',
+                      ),
+                    ),
+                    DataCell(
+                      Text(
+                        model.no,
+                        style: const TextStyle(
+                          color: Colors.blue,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
                         ),
-                      ]))),
-              Expanded(
-                  child: Container(
-                      padding: const EdgeInsets.only(top: 10, bottom: 10),
-                      margin: const EdgeInsets.all(5),
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(4),
-                          border: Border.all(color: Colors.blue.shade100)),
-                      child: Column(children: [
-                        Text(
-                          gavenrowcount.toString(),
-                          style: const TextStyle(color: Colors.blue),
-                        ),
-                        const Text(
-                          'خشتەی بەخشراو',
-                        ),
-                      ]))),
-            ]),
-            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Expanded(
-                  child: Container(
-                      padding: const EdgeInsets.only(top: 10, bottom: 10),
-                      margin: const EdgeInsets.all(5),
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(4),
-                          border: Border.all(color: Colors.blue.shade100)),
-                      child: Column(children: [
-                        Text(
-                          gavenmoneycuont.toString(),
-                          style: const TextStyle(color: Colors.blue),
-                        ),
-                        const Text(
-                          'بڕی پارەی بەخشراو',
-                        ),
-                      ]))),
-              Expanded(
-                  child: Container(
-                      padding: const EdgeInsets.only(top: 10, bottom: 10),
-                      margin: const EdgeInsets.all(5),
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(4),
-                          border: Border.all(color: Colors.blue.shade100)),
-                      child: Column(children: [
-                        Text(
-                          surgeryCount.toString(),
-                          style: const TextStyle(color: Colors.blue),
-                        ),
-                        const Text(
-                          'خشتەی نەشتەرگەری',
-                        ),
-                      ]))),
-            ]),
-            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Expanded(
-                  child: Container(
-                      padding: const EdgeInsets.only(top: 10, bottom: 10),
-                      margin: const EdgeInsets.all(5),
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(4),
-                          border: Border.all(color: Colors.blue.shade100)),
-                      child: Column(children: [
-                        Text(
-                          billedCount.toString(),
-                          style: const TextStyle(color: Colors.blue),
-                        ),
-                        const Text(
-                          'خ.م. کەفالەتکراو',
-                        ),
-                      ]))),
-              Expanded(
-                  child: Container(
-                      padding: const EdgeInsets.only(top: 10, bottom: 10),
-                      margin: const EdgeInsets.all(5),
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(4),
-                          border: Border.all(color: Colors.blue.shade100)),
-                      child: Column(children: [
-                        Text(
-                          disabledCount.toString(),
-                          style: const TextStyle(color: Colors.blue),
-                        ),
-                        const Text(
-                          'خ. پێداویستی تایبەت',
-                        ),
-                      ]))),
-            ]),
-            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Expanded(
-                  child: Container(
-                      padding: const EdgeInsets.only(top: 10, bottom: 10),
-                      margin: const EdgeInsets.all(5),
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(4),
-                          border: Border.all(color: Colors.blue.shade100)),
-                      child: Column(children: [
-                        Text(
-                          longSickCount.toString(),
-                          style: const TextStyle(color: Colors.blue),
-                        ),
-                        const Text(
-                          'نە. درێژخایەنەکان',
-                        ),
-                      ]))),
-              Expanded(
-                  child: Container(
-                      padding: const EdgeInsets.only(top: 10, bottom: 10),
-                      margin: const EdgeInsets.all(5),
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(4),
-                          border: Border.all(color: Colors.blue.shade100)),
-                      child: Column(children: [
-                        Text(
-                          poorsCount.toString(),
-                          style: const TextStyle(color: Colors.blue),
-                        ),
-                        const Text(
-                          'خشتەی هەژاران',
-                        ),
-                      ]))),
-            ]),
-            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Expanded(
-                  child: Container(
-                      padding: const EdgeInsets.only(top: 10, bottom: 10),
-                      margin: const EdgeInsets.all(5),
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(4),
-                          border: Border.all(color: Colors.blue.shade100)),
-                      child: Column(children: [
-                        Text(
-                          aloneCount.toString(),
-                          style: const TextStyle(color: Colors.blue),
-                        ),
-                        const Text(
-                          'خشتەی بێ کەس',
-                        ),
-                      ]))),
-              Expanded(
-                  child: Container(
-                      padding: const EdgeInsets.only(top: 10, bottom: 10),
-                      margin: const EdgeInsets.all(5),
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(4),
-                          border: Border.all(color: Colors.blue.shade100)),
-                      child: Column(children: [
-                        Text(
-                          devorcedCount.toString(),
-                          style: const TextStyle(color: Colors.blue),
-                        ),
-                        const Text(
-                          'خشتەی جیابوونەوە',
-                        ),
-                      ]))),
-            ]),
-            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Expanded(
-                  child: Container(
-                      padding: const EdgeInsets.only(top: 10, bottom: 10),
-                      margin: const EdgeInsets.all(5),
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(4),
-                          border: Border.all(color: Colors.blue.shade100)),
-                      child: Column(children: [
-                        Text(
-                          orphansCount.toString(),
-                          style: const TextStyle(color: Colors.blue),
-                        ),
-                        const Text(
-                          'خشتەی بێ نازان',
-                        ),
-                      ]))),
-              Expanded(
-                  child: Container(
-                      padding: const EdgeInsets.only(top: 10, bottom: 10),
-                      margin: const EdgeInsets.all(5),
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(4),
-                          border: Border.all(color: Colors.blue.shade100)),
-                      child: Column(children: [
-                        Text(
-                          notesCount.toString(),
-                          style: const TextStyle(color: Colors.blue),
-                        ),
-                        const Text(
-                          'ژ. تێبینیەکان',
-                        ),
-                      ]))),
-            ]),
-            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Expanded(
-                  child: Container(
-                      padding: const EdgeInsets.only(top: 10, bottom: 10),
-                      margin: const EdgeInsets.all(5),
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(4),
-                          border: Border.all(color: Colors.blue.shade100)),
-                      child: Column(children: [
-                        Text(
-                          writtenCount.toString(),
-                          style: const TextStyle(color: Colors.blue),
-                        ),
-                        const Text(
-                          'ژمارەی نووسراوەکان',
-                        ),
-                      ]))),
-              Expanded(
-                  child: Container(
-                      padding: const EdgeInsets.only(top: 10, bottom: 10),
-                      margin: const EdgeInsets.all(5),
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(4),
-                          border: Border.all(color: Colors.blue.shade100)),
-                      child: Column(children: [
-                        Text(
-                          monthlyPaidCount.toString(),
-                          style: const TextStyle(color: Colors.blue),
-                        ),
-                        const Text(
-                          'کەفالەتی مانگانە',
-                        ),
-                      ]))),
-            ])
-          ]),
+                      ),
+                    ),
+                  ]);
+                }).toList() ??
+                [],
+          )
         ])));
   }
 }

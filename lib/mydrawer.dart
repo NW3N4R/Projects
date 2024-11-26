@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:garmian_house_of_charity/Views/familyviews.dart';
 import 'package:garmian_house_of_charity/Views/gavenviews.dart';
+import 'package:garmian_house_of_charity/Views/partial.dart';
 import 'package:garmian_house_of_charity/main.dart';
+
 // ignore: must_be_immutable
 class MyDrawer extends StatelessWidget {
   int selectedIndex;
@@ -89,6 +90,33 @@ class MyDrawer extends StatelessWidget {
                     onTap: () {
                       Navigator.of(context).push(MaterialPageRoute(
                           builder: (context) => const gavenViews()));
+                    },
+                  )),
+              Container(
+                  margin: const EdgeInsets.only(top: 10),
+                  decoration: BoxDecoration(
+                      color: selectedIndex == 3
+                          ? Colors.blue.shade50
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(10)),
+                  child: ListTile(
+                    leading: Icon(
+                      Icons.people_outline_sharp,
+                      color: selectedIndex == 3
+                          ? Colors.blue.shade300
+                          : Colors.black,
+                    ),
+                    title: Text(
+                      'خشتەکانی تر',
+                      style: TextStyle(
+                        color: selectedIndex == 3
+                            ? Colors.blue.shade300
+                            : Colors.black,
+                      ),
+                    ),
+                    onTap: () {
+                      Navigator.of(context).push(MaterialPageRoute(
+                          builder: (context) => const Partialview()));
                     },
                   )),
               Container(
@@ -199,7 +227,6 @@ class MyDrawer extends StatelessWidget {
                     //       builder: (context) => const LongSickView()));
                     // },
                   )),
-     
               Container(
                   margin: const EdgeInsets.only(top: 10),
                   decoration: BoxDecoration(
@@ -227,7 +254,7 @@ class MyDrawer extends StatelessWidget {
                     //       builder: (context) => const MonthlyPaidViews()));
                     // },
                   )),
-                    Container(
+              Container(
                   margin: const EdgeInsets.only(top: 10),
                   decoration: BoxDecoration(
                       color: selectedIndex == 12

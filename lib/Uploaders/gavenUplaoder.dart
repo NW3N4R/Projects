@@ -1,8 +1,13 @@
-import 'dart:convert';
+// ignore_for_file: file_names, non_constant_identifier_names
+
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:garmian_house_of_charity/Helpers/configureapi.dart';
+import 'package:garmian_house_of_charity/Models/combinedGaven.dart';
+import 'package:garmian_house_of_charity/Models/gavenautosets.dart';
+import 'package:garmian_house_of_charity/Models/gavenmodel.dart';
 import 'package:garmian_house_of_charity/Views/gavenviews.dart';
-import 'package:http/http.dart' as http;
+import 'package:flutter/cupertino.dart';
+import 'package:intl/intl.dart';
 
 // ignore: must_be_immutable
 class GavenUploaderView extends StatelessWidget {
@@ -13,10 +18,7 @@ class GavenUploaderView extends StatelessWidget {
     return const MaterialApp(
       title: 'خشتەی بەخشراو >> نوێکردنەوە',
       debugShowCheckedModeBanner: false,
-      home: Directionality(
-        textDirection: TextDirection.rtl, // Set the text direction to RTL
-        child: MainGavenUploader(),
-      ),
+      home: MainGavenUploader(),
     );
   }
 }
@@ -28,21 +30,31 @@ class MainGavenUploader extends StatefulWidget {
   @override
   HomePage createState() => HomePage();
 }
+
 var nametxtcontroller = TextEditingController();
-  var moneytxtcontroller = TextEditingController();
-  var notetxtcontroller = TextEditingController();
-  var daytxtcontroller = TextEditingController();
-  var monthtxtcontroller = TextEditingController();
-  var yeartxtcontroller = TextEditingController();
-  var addresstxtcontroller = TextEditingController();
-  var phonenotxtcontroller = TextEditingController();
+var moneytxtcontroller = TextEditingController();
+var notetxtcontroller = TextEditingController();
+
+var addresstxtcontroller = TextEditingController();
+var phonenotxtcontroller = TextEditingController();
+
 class HomePage extends State<MainGavenUploader> {
   int delcount = 0;
+  DateTime now = DateTime.now();
+  DateTime _selectedDate = DateTime.now();
   DateTime dt = DateTime.now();
 
-
   Future<void> updateVoid() async {
-    
+    Gavenmodel model = Gavenmodel(
+        id: 0,
+        name: nametxtcontroller.text,
+        money: moneytxtcontroller.text,
+        note: notetxtcontroller.text,
+        phone: phonenotxtcontroller.text,
+        address: addresstxtcontroller.text,
+        date:
+            '${_selectedDate.year}-${_selectedDate.month}-${_selectedDate.day}');
+
     String Aday = dt.weekday.toString();
     if (Aday == '1') {
       Aday = 'دوو شەممە';
@@ -59,51 +71,43 @@ class HomePage extends State<MainGavenUploader> {
     } else if (Aday == '7') {
       Aday = ' شەممە';
     }
-
-    final response = await http.post(
-        Uri.parse(
-            'http://p4165386.eero.online/api/gaven/postgaven/0/0/0/0/0/0/0/0/0/0/0'),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: jsonEncode(<String, String>{
-          'Name': nametxtcontroller.text,
-          'Money': moneytxtcontroller.text,
-          'Note': notetxtcontroller.text,
-          'Year': yeartxtcontroller.text,
-          'Month': monthtxtcontroller.text,
-          'Day': daytxtcontroller.text,
-          'PhoneNo': phonenotxtcontroller.text,
-          'Address': addresstxtcontroller.text,
-          'aday': Aday,
-          'adate': '${dt.year} / ${dt.month} / ${dt.day}',
-          'atime': '${dt.hour} : ${dt.minute} : ${dt.minute}'
-        }));
-    if (response.statusCode == 200) {
-      print('Apollo the response code is OK -- uploading');
-    } else {
-      print('Apollo the response code is ${response.statusCode} --uploading');
-      // print('Apollo the param we sent was ${model.name} --uploading');
-    }
+    GavenAutoSet autoSet = GavenAutoSet(
+        date: DateFormat('yyyy-MM-dd').format(now),
+        time: DateFormat('HH:mm').format(now),
+        day: Aday);
+    Combinedgaven modelToSend =
+        Combinedgaven(Gaven: model, AutoTimeSet: autoSet);
+      await ConfigureApi().post("GavenMoney/create", modelToSend);
   }
 
-  @override
-  void initState() {
-    super.initState();
-    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-    yeartxtcontroller.text = DateTime.now().year.toString();
-        monthtxtcontroller.text = DateTime.now().month.toString();
-
-    daytxtcontroller.text = DateTime.now().day.toString();
-
+  void _showDatePicker(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext builder) {
+        return Container(
+          height: 250,
+          color: Colors.white,
+          child: CupertinoDatePicker(
+            initialDateTime: _selectedDate,
+            mode: CupertinoDatePickerMode.date,
+            minimumDate: DateTime(2000),
+            maximumDate: DateTime(2100),
+            onDateTimeChanged: (DateTime newDate) {
+              setState(() {
+                _selectedDate = newDate;
+              });
+            },
+          ),
+        );
+      },
+    );
   }
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-          backgroundColor: Colors.blue.shade200,
+          backgroundColor: Colors.white,
           elevation: 0,
           automaticallyImplyLeading: false,
           actions: <Widget>[
@@ -119,250 +123,200 @@ class HomePage extends State<MainGavenUploader> {
             alignment: Alignment.center,
             child: const Text(
               'خشتەی بەخشراو >> تۆمار کردن',
-              style: TextStyle(fontSize: 18),
+              style: TextStyle(fontSize: 18, fontFamily: 'DroidArabic'),
               textAlign: TextAlign.center,
             ),
           )),
-      body: SingleChildScrollView(
-          child: Container(
-              padding:
-                  const EdgeInsets.only(top: 10, bottom: 10, left: 4, right: 4),
-              child: Column(children: [
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      margin: const EdgeInsets.all(4),
-                      // width: MediaQuery.of(context).size.width / 2.2,
-                      child: TextField(
-                        textDirection: TextDirection.rtl,
-                        controller: nametxtcontroller,
-                        textAlign: TextAlign.center,
-                        decoration: InputDecoration(
-                            contentPadding: const EdgeInsets.only(
-                                left: 4, right: 4, top: 1, bottom: 1),
-                            focusedBorder: OutlineInputBorder(
-                                borderSide:
-                                    BorderSide(color: Colors.blue.shade300)),
-                            enabledBorder: OutlineInputBorder(
-                                borderSide:
-                                    BorderSide(color: Colors.blue.shade200)),
-                            labelText: 'ناو',
-                            hintText: 'ناو'),
-                      ),
-                    ),
-                    Container(
-                      margin: const EdgeInsets.all(4),
-                      // width: MediaQuery.of(context).size.width / 2.2,
-                      child: TextField(
-                        textDirection: TextDirection.rtl,
-                        controller: moneytxtcontroller,
-                        keyboardType: TextInputType.number,
-                        textAlign: TextAlign.center,
-                        decoration: InputDecoration(
-                            contentPadding: const EdgeInsets.only(
-                                left: 4, right: 4, top: 1, bottom: 1),
-                            focusedBorder: OutlineInputBorder(
-                                borderSide:
-                                    BorderSide(color: Colors.blue.shade300)),
-                            enabledBorder: OutlineInputBorder(
-                                borderSide:
-                                    BorderSide(color: Colors.blue.shade200)),
-                            labelText: 'بڕی پارە',
-                            hintText: 'بڕی پارە'),
-                      ),
-                    ),
-                  ],
+      body: Container(
+          color: Colors.white,
+          padding:
+              const EdgeInsets.only(top: 10, bottom: 10, left: 4, right: 4),
+          child: Column(children: [
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  margin: const EdgeInsets.all(4),
+                  // width: MediaQuery.of(context).size.width / 2.2,
+                  child: TextField(
+                    controller: nametxtcontroller,
+                    textAlign: TextAlign.center,
+                    decoration: InputDecoration(
+                        contentPadding: const EdgeInsets.only(
+                            left: 4, right: 4, top: 1, bottom: 1),
+                        focusedBorder: OutlineInputBorder(
+                            borderSide:
+                                BorderSide(color: Colors.blue.shade300)),
+                        enabledBorder: OutlineInputBorder(
+                            borderSide:
+                                BorderSide(color: Colors.blue.shade200)),
+                        labelText: 'ناو',
+                        hintText: 'ناو'),
+                  ),
                 ),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      margin: const EdgeInsets.all(4),
-                      // width: MediaQuery.of(context).size.width / 2.2,
-                      child: TextField(
-                        textDirection: TextDirection.rtl,
-                        controller: notetxtcontroller,
-                        textAlign: TextAlign.center,
-                        decoration: InputDecoration(
-                            contentPadding: const EdgeInsets.only(
-                                left: 4, right: 4, top: 1, bottom: 1),
-                            focusedBorder: OutlineInputBorder(
-                                borderSide:
-                                    BorderSide(color: Colors.blue.shade300)),
-                            enabledBorder: OutlineInputBorder(
-                                borderSide:
-                                    BorderSide(color: Colors.blue.shade200)),
-                            labelText: 'تێبینی',
-                            hintText: 'تێبینی'),
-                      ),
-                    ),
-                  ],
+                Container(
+                  margin: const EdgeInsets.all(4),
+                  // width: MediaQuery.of(context).size.width / 2.2,
+                  child: TextField(
+                    controller: moneytxtcontroller,
+                    keyboardType: TextInputType.number,
+                    textAlign: TextAlign.center,
+                    decoration: InputDecoration(
+                        contentPadding: const EdgeInsets.only(
+                            left: 4, right: 4, top: 1, bottom: 1),
+                        focusedBorder: OutlineInputBorder(
+                            borderSide:
+                                BorderSide(color: Colors.blue.shade300)),
+                        enabledBorder: OutlineInputBorder(
+                            borderSide:
+                                BorderSide(color: Colors.blue.shade200)),
+                        labelText: 'بڕی پارە',
+                        hintText: 'بڕی پارە'),
+                  ),
                 ),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      margin: const EdgeInsets.all(4),
-                      // width: MediaQuery.of(context).size.width / 2.2,
-                      child: TextField(
-                        textDirection: TextDirection.rtl,
-                        keyboardType: TextInputType.text,
-                        controller: addresstxtcontroller,
-                        textAlign: TextAlign.center,
-                        decoration: InputDecoration(
-                            contentPadding: const EdgeInsets.only(
-                                left: 4, right: 4, top: 1, bottom: 1),
-                            focusedBorder: OutlineInputBorder(
-                                borderSide:
-                                    BorderSide(color: Colors.blue.shade300)),
-                            enabledBorder: OutlineInputBorder(
-                                borderSide:
-                                    BorderSide(color: Colors.blue.shade200)),
-                            labelText: 'ناونیشان',
-                            hintText: 'ناونیشان'),
-                      ),
-                    ),
-                  ],
+              ],
+            ),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  margin: const EdgeInsets.all(4),
+                  // width: MediaQuery.of(context).size.width / 2.2,
+                  child: TextField(
+                    controller: notetxtcontroller,
+                    textAlign: TextAlign.center,
+                    decoration: InputDecoration(
+                        contentPadding: const EdgeInsets.only(
+                            left: 4, right: 4, top: 1, bottom: 1),
+                        focusedBorder: OutlineInputBorder(
+                            borderSide:
+                                BorderSide(color: Colors.blue.shade300)),
+                        enabledBorder: OutlineInputBorder(
+                            borderSide:
+                                BorderSide(color: Colors.blue.shade200)),
+                        labelText: 'تێبینی',
+                        hintText: 'تێبینی'),
+                  ),
                 ),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      margin: const EdgeInsets.all(4),
-                      // width: MediaQuery.of(context).size.width / 2.2,
-                      child: TextField(
-                        textDirection: TextDirection.rtl,
-                        keyboardType: TextInputType.number,
-                        controller: phonenotxtcontroller,
-                        textAlign: TextAlign.center,
-                        decoration: InputDecoration(
-                            contentPadding: const EdgeInsets.only(
-                                left: 4, right: 4, top: 1, bottom: 1),
-                            focusedBorder: OutlineInputBorder(
-                                borderSide:
-                                    BorderSide(color: Colors.blue.shade300)),
-                            enabledBorder: OutlineInputBorder(
-                                borderSide:
-                                    BorderSide(color: Colors.blue.shade200)),
-                            labelText: 'ژمارە تەلەفون',
-                            hintText: 'ژمارە تەلەفون'),
-                      ),
-                    ),
-                  ],
+              ],
+            ),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  margin: const EdgeInsets.all(4),
+                  // width: MediaQuery.of(context).size.width / 2.2,
+                  child: TextField(
+                    keyboardType: TextInputType.text,
+                    controller: addresstxtcontroller,
+                    textAlign: TextAlign.center,
+                    decoration: InputDecoration(
+                        contentPadding: const EdgeInsets.only(
+                            left: 4, right: 4, top: 1, bottom: 1),
+                        focusedBorder: OutlineInputBorder(
+                            borderSide:
+                                BorderSide(color: Colors.blue.shade300)),
+                        enabledBorder: OutlineInputBorder(
+                            borderSide:
+                                BorderSide(color: Colors.blue.shade200)),
+                        labelText: 'ناونیشان',
+                        hintText: 'ناونیشان'),
+                  ),
                 ),
-                IntrinsicWidth(
-                    child: SizedBox(
-                  width: MediaQuery.of(context).size.width,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      Expanded(
-                          child: Container(
-                        margin: const EdgeInsets.all(4),
-                        // width: MediaQuery.of(context).size.width / 2.2,
-                        child: TextField(
-                          textDirection: TextDirection.rtl,
-                          keyboardType: TextInputType.number,
-                          controller: yeartxtcontroller,
-                          textAlign: TextAlign.center,
-                          decoration: InputDecoration(
-                              contentPadding: const EdgeInsets.only(
-                                  left: 4, right: 4, top: 1, bottom: 1),
-                              focusedBorder: OutlineInputBorder(
-                                  borderSide:
-                                      BorderSide(color: Colors.blue.shade300)),
-                              enabledBorder: OutlineInputBorder(
-                                  borderSide:
-                                      BorderSide(color: Colors.blue.shade200)),
-                              labelText: 'ساڵ',
-                              hintText: 'ساڵ'),
+              ],
+            ),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  margin: const EdgeInsets.all(4),
+                  // width: MediaQuery.of(context).size.width / 2.2,
+                  child: TextField(
+                    keyboardType: TextInputType.number,
+                    controller: phonenotxtcontroller,
+                    textAlign: TextAlign.center,
+                    decoration: InputDecoration(
+                        contentPadding: const EdgeInsets.only(
+                            left: 4, right: 4, top: 1, bottom: 1),
+                        focusedBorder: OutlineInputBorder(
+                            borderSide:
+                                BorderSide(color: Colors.blue.shade300)),
+                        enabledBorder: OutlineInputBorder(
+                            borderSide:
+                                BorderSide(color: Colors.blue.shade200)),
+                        labelText: 'ژمارە تەلەفون',
+                        hintText: 'ژمارە تەلەفون'),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(
+                width: double.infinity,
+                child: Padding(
+                  padding: const EdgeInsets.all(5),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'بەروار',
+                        style: TextStyle(fontFamily: 'DroidArabic'),
+                      ),
+                      Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                            border: Border.all(
+                              color: Colors.blue.shade200, // Border color
+                              width: 1,
+                            ),
+                            borderRadius: BorderRadius.circular(3)),
+                        child: TextButton(
+                          onPressed: () => _showDatePicker(context),
+                          child: Text(
+                            '${_selectedDate.year}-${_selectedDate.month}-${_selectedDate.day}',
+                            style: const TextStyle(color: Colors.black),
+                          ),
                         ),
-                      )),
-                      Expanded(
-                          child: Container(
-                        margin: const EdgeInsets.all(4),
-                        // width: MediaQuery.of(context).size.width / 2.2,
-                        child: TextField(
-                          textDirection: TextDirection.rtl,
-                          keyboardType: TextInputType.number,
-                          controller: monthtxtcontroller,
-                          textAlign: TextAlign.center,
-                          decoration: InputDecoration(
-                              contentPadding: const EdgeInsets.only(
-                                  left: 4, right: 4, top: 1, bottom: 1),
-                              focusedBorder: OutlineInputBorder(
-                                  borderSide:
-                                      BorderSide(color: Colors.blue.shade300)),
-                              enabledBorder: OutlineInputBorder(
-                                  borderSide:
-                                      BorderSide(color: Colors.blue.shade200)),
-                              labelText: 'مانگ',
-                              hintText: 'مانگ'),
-                        ),
-                      )),
-                      Expanded(
-                          child: Container(
-                        margin: const EdgeInsets.all(4),
-                        // width: MediaQuery.of(context).size.width / 2.2,
-                        child: TextField(
-                          textDirection: TextDirection.ltr,
-                          keyboardType: TextInputType.number,
-                          controller: daytxtcontroller,
-                          textAlign: TextAlign.center,
-                          decoration: InputDecoration(
-                              contentPadding: const EdgeInsets.only(
-                                  left: 4, right: 4, top: 1, bottom: 1),
-                              focusedBorder: OutlineInputBorder(
-                                  borderSide:
-                                      BorderSide(color: Colors.blue.shade300)),
-                              enabledBorder: OutlineInputBorder(
-                                  borderSide:
-                                      BorderSide(color: Colors.blue.shade200)),
-                              labelText: 'ڕۆژ',
-                              hintText: 'ڕۆژ'),
-                        ),
-                      )),
+                      )
                     ],
                   ),
                 )),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    SizedBox(
-                        width: MediaQuery.of(context).size.width - 150,
-                        child: ElevatedButton(
-                          onPressed: () => updateVoid(),
-                          style: ElevatedButton.styleFrom(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(5),
-                              ),
-                              backgroundColor: Colors.blue.shade500),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.upload,
-                                size: 30,
-                                color: Colors.white,
-                              ),
-                              Container(
-                                width: MediaQuery.of(context).size.width / 2.8,
-                                margin:
-                                    const EdgeInsets.only(right: 15, left: 1),
-                                child: const Text(
-                                  textAlign: TextAlign.center,
-                                  'تۆمار کردن',
-                                  style: TextStyle(
-                                      fontSize: 22, color: Colors.white),
-                                ),
-                              ),
-                            ],
-                          ),
-                        )),
-                  ],
-                )
-              ]))),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Expanded(
+                    child: ElevatedButton(
+                  onPressed: () => updateVoid(),
+                  style: ElevatedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                      backgroundColor: Colors.blue.shade500),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.upload,
+                        size: 30,
+                        color: Colors.white,
+                      ),
+                      Container(
+                        width: MediaQuery.of(context).size.width / 2.8,
+                        margin: const EdgeInsets.only(right: 15, left: 1),
+                        child: const Text(
+                          textAlign: TextAlign.center,
+                          'تۆمار کردن',
+                          style: TextStyle(
+                              fontSize: 22,
+                              color: Colors.white,
+                              fontFamily: 'DroidArabic'),
+                        ),
+                      ),
+                    ],
+                  ),
+                )),
+              ],
+            )
+          ])),
     );
   }
 }

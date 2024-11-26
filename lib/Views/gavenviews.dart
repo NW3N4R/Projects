@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:garmian_house_of_charity/Helpers/gavenHelper.dart';
+import 'package:garmian_house_of_charity/Helpers/configureapi.dart';
+import 'package:garmian_house_of_charity/Models/gavenmodel.dart';
 import 'package:garmian_house_of_charity/Updateres/gavenupdater.dart';
 import 'package:garmian_house_of_charity/Uploaders/gavenUplaoder.dart';
 import 'package:garmian_house_of_charity/mydrawer.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
+import 'package:syncfusion_flutter_core/theme.dart';
 
 void main() {
   runApp(const gavenViews());
@@ -16,10 +18,12 @@ class gavenViews extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
+      theme: ThemeData(
+          appBarTheme: const AppBarTheme(backgroundColor: Colors.white)),
       debugShowCheckedModeBanner: false,
       title: 'خشتەی بەخشراو',
-      home: Directionality(
+      home: const Directionality(
         textDirection: TextDirection.rtl, // Set the text direction to RTL
         child: MainPage(),
       ),
@@ -36,668 +40,386 @@ class MainPage extends StatefulWidget {
 
 bool isSearchByDate = false;
 bool openSideCounter = false;
-final searchfieldcontroller = TextEditingController();
-final yearfieldcontroller = TextEditingController();
-final dayfieldcontroller = TextEditingController();
-final monthfieldcontroller = TextEditingController();
+final searchtxt = TextEditingController();
+final yeartxt = TextEditingController();
+final monthtxt = TextEditingController();
+final daytxt = TextEditingController();
 
 // ignore: prefer_typing_uninitialized_variables
-var rowCounts, moneySum;
-String r = "", m = "";
-List<Map<String, dynamic>> jsonData = [];
-List<UserData> data = [];
+String r = "0", money = "0";
+Iterable<Gavenmodel>? _list = [];
 
 class GavenHome extends State<MainPage> {
-  Future<void> fetchData() async {
-    jsonData.clear();
-
-    try {
-      final apiHelper = GavenHelper();
-      data = await apiHelper.fetchData();
-      for (var userData in data) {
-        Map<String, dynamic> userMap = {
-          'id': userData.id,
-          'name': userData.name,
-          'note': userData.note,
-          'money': userData.money,
-          'year': userData.year,
-          'month': userData.month,
-          'day': userData.day,
-          'address': userData.address,
-          'phoneNo': userData.phoneNo,
-          'date': userData.date
-        };
-        jsonData.add(userMap);
-      }
-      setState(() {
-        rowCounts = jsonData.length.toString();
-        moneySum = 0;
-        for (var element in jsonData) {
-          moneySum += double.parse(element['money']);
-        }
-      });
-
-      print('Apollo Gaven Datas Has been Retreived Successfuly');
-    } catch (e) {
-      print('Apollo Error fetching datas of Gaven: $e');
-    }
-  }
+  GavenDataSource _gavenDataSource = GavenDataSource([]);
 
   @override
   void initState() {
     super.initState();
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeRight,
-      DeviceOrientation.landscapeLeft,
-    ]);
+    _loadDataOnStart();
+  }
 
-    fetchData();
+  Future<void> _loadDataOnStart() async {
+    // Call the API using the `requestData` method
+    _list = await ConfigureApi().requestData<Gavenmodel>(
+        "GavenMoney", (json) => Gavenmodel.fromJson(json));
+    setState(() {
+      _gavenDataSource = GavenDataSource(_list?.toList() ?? []);
+    });
+  }
+
+  void search() {
+    Iterable<Gavenmodel>? filter = _list;
+    if (filter != null) {
+      if (searchtxt.text.isNotEmpty) {
+        filter = filter.where((x) =>
+            x.name.contains(searchtxt.text) ||
+            x.note.contains(searchtxt.text) ||
+            x.address.contains(searchtxt.text));
+      }
+
+      // Check if year text is filled and matches the expected length (4 digits)
+      if (yeartxt.text.length == 4) {
+        filter = filter.where((x) => x.date.contains(yeartxt.text));
+      }
+
+      // Check if month text is filled
+      if (monthtxt.text.isNotEmpty) {
+        filter = filter.where((x) {
+          // Extract the month from x.date
+          final parts = x.date.split('-'); // Splits the string by '-'
+          final month = parts[1]; // Gets the second part (month)
+
+          return month.contains(monthtxt.text);
+        }).toList();
+      }
+
+      // Check if day text is filled
+      if (daytxt.text.isNotEmpty) {
+        filter = filter.where((x) {
+          // Extract the part after the last '-'
+          final lastPart =
+              x.date.split('-').last; // Gets the part after the last '-'
+
+          // Compare with the input text
+          return lastPart.contains(daytxt.text);
+        }).toList();
+      }
+    }
+
+    // After applying all the filters, _filter will hold the filtered data
+    setState(() {
+      _gavenDataSource = GavenDataSource(filter?.toList() ?? []);
+      if (filter != null) {
+        r = filter.length.toString();
+        double m = filter.fold(0.0, (previousValue, x) {
+          // Attempt to convert the 'money' string to a double
+          double? moneyValue = double.tryParse(x.money);
+          // If the conversion is successful, add it to the sum, otherwise add 0
+          return previousValue + (moneyValue ?? 0.0);
+        });
+        money = m.toString();
+      }
+    });
+  }
+
+  void _showPopup(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          title: Directionality(
+            textDirection: TextDirection.rtl,
+            child: Column(
+              children: [
+                const Text(
+                  'گەڕان',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontFamily: 'DroidArabic',
+                  ),
+                ),
+                TextField(
+                  controller: searchtxt,
+                  onChanged: (text) {
+                    search();
+                  },
+                  decoration: const InputDecoration(
+                    hintText: 'گەڕان بە پێی ناو و تێبینی و ناونیشان',
+                  ),
+                  style: const TextStyle(fontFamily: 'DroidArabic'),
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        keyboardType: TextInputType.number,
+                        controller: yeartxt,
+                        onChanged: (text) {
+                          search();
+                        },
+                        decoration: const InputDecoration(hintText: 'ساڵ'),
+                        style: const TextStyle(fontFamily: 'DroidArabic'),
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 20),
+                    Expanded(
+                      child: TextField(
+                        keyboardType: TextInputType.number,
+                        controller: monthtxt,
+                        onChanged: (text) {
+                          search();
+                        },
+                        decoration: const InputDecoration(hintText: 'مانگ'),
+                        style: const TextStyle(fontFamily: 'DroidArabic'),
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 20),
+                    Expanded(
+                      child: TextField(
+                        controller: daytxt,
+                        onChanged: (text) {
+                          search();
+                        },
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(hintText: 'ڕۆژ'),
+                        style: const TextStyle(fontFamily: 'DroidArabic'),
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                Container(
+                  width:
+                      double.infinity, // Ensure the container takes 100% width
+                  alignment:
+                      Alignment.centerRight, // Aligns the content to the right
+                  padding: const EdgeInsets.all(8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'کۆی ناوەکان $r',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontFamily: 'DroidArabic',
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'بڕی بەخشراو $money',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontFamily: 'DroidArabic',
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      child: const Text(
+                        'وەرگرتن',
+                        style: TextStyle(
+                            fontSize: 18,
+                            fontFamily: 'DroidArabic',
+                            color: Colors.black),
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () {
+                        // Clear logic here, if needed
+                        searchtxt.clear();
+                        yeartxt.clear();
+                        monthtxt.clear();
+                        daytxt.clear();
+                        setState(() {
+                          _gavenDataSource =
+                              GavenDataSource(_list?.toList() ?? []);
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final List<DataGridRow> dataGridRows = jsonData
-        .map((item) => DataGridRow(cells: [
-              DataGridCell<int>(columnName: 'id', value: item['id']),
-              DataGridCell<dynamic>(columnName: 'name', value: item['name']),
-              DataGridCell<dynamic>(columnName: 'note', value: item['note']),
-              DataGridCell<dynamic>(columnName: 'Money', value: item['money']),
-              DataGridCell<dynamic>(columnName: 'date', value: item['date']),
-              DataGridCell<dynamic>(
-                  columnName: 'Address', value: item['address']),
-              DataGridCell<dynamic>(
-                  columnName: 'PhoneNo', value: item['phoneNo']),
-            ]))
-        .toList();
-    final DataGridSource dataSource = _MyDataSource(dataGridRows, context);
-
     return Scaffold(
-      bottomSheet: Container(
-          // height: MediaQuery.of(context).size.height / 5,
-
-          decoration: BoxDecoration(
-              color: Colors.blue.shade200,
-              borderRadius: BorderRadius.circular(10)),
-          padding: const EdgeInsets.all(6),
-          margin: const EdgeInsets.all(10),
-          child: IntrinsicWidth(
-              child: IntrinsicHeight(
-            child: Row(children: [
+      drawer: MyDrawer(
+        selectedIndex: 2,
+      ),
+      extendBodyBehindAppBar:
+          false, // Ensures the AppBar background color is preserved
+      appBar: AppBar(
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'خشتەی بەخشراو',
+              style: TextStyle(fontFamily: 'DroidArabic'),
+            ),
+            Row(mainAxisAlignment: MainAxisAlignment.start, children: [
+              IconButton(
+                  onPressed: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const GavenUploaderView()));
+                  },
+                  icon: const Icon(Icons.add)),
               IconButton(
                   onPressed: () {
                     setState(() {
-                      if (openSideCounter == false) {
-                        openSideCounter = true;
-                      } else {
-                        openSideCounter = false;
-                      }
+                      _showPopup(context);
                     });
                   },
-                  icon: const Icon(
-                    Icons.open_in_new,
-                    color: Colors.white,
-                  )),
-              Visibility(
-                  visible: openSideCounter,
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          const Text(
-                            'هێڵی دیاری کراو',
-                            textAlign: TextAlign.end,
-                            style: TextStyle(color: Colors.white, fontSize: 19),
-                          ),
-                          Container(
-                              margin: const EdgeInsets.only(right: 10),
-                              child: Text(
-                                textAlign: TextAlign.left,
-                                rowCounts.toString(),
-                                style: const TextStyle(
-                                    color: Colors.white, fontSize: 19),
-                              ))
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          const Text(
-                            'بڕی پارەی بەخشراو',
-                            style: TextStyle(color: Colors.white, fontSize: 19),
-                          ),
-                          Container(
-                              margin: const EdgeInsets.only(right: 10),
-                              child: Text(
-                                moneySum.toString(),
-                                style: const TextStyle(
-                                    color: Colors.white, fontSize: 19),
-                              ))
-                        ],
-                      )
-                    ],
-                  ))
-            ]),
-          ))),
-      drawer: MyDrawer(
-        selectedIndex: 3,
-      ),
-      appBar: AppBar(
-          backgroundColor: Colors.blue.shade200,
-          elevation: 0,
-          actions: <Widget>[
-            IconButton(
-                onPressed: () {
-                  Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) => const MainGavenUploader()));
-                },
-                icon: const Icon(
-                  Icons.upload,
-                  color: Colors.white,
-                )),
-            IconButton(
-                onPressed: () {
-                  searchfieldcontroller.text = "";
-                  dayfieldcontroller.text = "1";
-                  monthfieldcontroller.text = "";
-                  yearfieldcontroller.text = "";
-                  fetchData(); // Wait for fetchData() to complete
-
-                  //  setState(() {});
-                },
-                icon: const Icon(
-                  Icons.refresh,
-                  color: Colors.white,
-                ))
+                  icon: const Icon(Icons.search)),
+              IconButton(
+                  onPressed: () {
+                    setState(() {
+                      _gavenDataSource = GavenDataSource(_list?.toList() ?? []);
+                    });
+                  },
+                  icon: const Icon(Icons.clear)),
+            ])
           ],
-          title: SizedBox(
-              width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.height,
-              child:
-                  Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                IconButton(
-                    onPressed: () {
-                      setState(() {
-                        if (isSearchByDate == false) {
-                          isSearchByDate = true;
-                        } else {
-                          isSearchByDate = false;
-                        }
-                      });
-                    },
-                    icon:
-                        const Icon(Icons.calendar_month, color: Colors.white)),
-                Visibility(
-                    visible: isSearchByDate,
-                    child: IntrinsicWidth(
-                      child: TextField(
-                        keyboardType: TextInputType.number,
-                        maxLength: 2,
-                        controller: dayfieldcontroller,
-                        decoration: InputDecoration(
-                            constraints: const BoxConstraints(
-                                minWidth: 40, maxWidth: 50),
-                            contentPadding: const EdgeInsets.all(4),
-                            hintText: 'ڕۆژ',
-                            counterText: "",
-                            filled: true,
-                            fillColor: Colors.white,
-                            border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(3.0)),
-                            enabledBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    width: 1, color: Colors.blue.shade50)),
-                            hintStyle: const TextStyle(color: Colors.black)),
-                      ),
-                    )),
-                Visibility(
-                    visible: isSearchByDate,
-                    child: Container(
-                        constraints:
-                            const BoxConstraints(minWidth: 40, maxWidth: 50),
-                        margin: const EdgeInsets.only(left: 5, right: 5),
-                        child: IntrinsicWidth(
-                          child: TextField(
-                            keyboardType: TextInputType.number,
-                            maxLength: 2,
-                            controller: monthfieldcontroller,
-                            decoration: InputDecoration(
-                                contentPadding: const EdgeInsets.all(4),
-                                hintText: 'مانگ',
-                                counterText: "",
-                                filled: true,
-                                fillColor: Colors.white,
-                                border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(3.0)),
-                                enabledBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                        width: 1, color: Colors.blue.shade50)),
-                                hintStyle:
-                                    const TextStyle(color: Colors.black)),
-                          ),
-                        ))),
-                Visibility(
-                    visible: isSearchByDate,
-                    child: IntrinsicWidth(
-                      child: TextField(
-                        keyboardType: TextInputType.number,
-                        maxLength: 4,
-                        controller: yearfieldcontroller,
-                        decoration: InputDecoration(
-                            constraints: const BoxConstraints(
-                                minWidth: 40, maxWidth: 50),
-                            contentPadding: const EdgeInsets.all(7),
-                            hintText: 'ساڵ',
-                            counterText: "",
-                            filled: true,
-                            fillColor: Colors.white,
-                            border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(3.0)),
-                            enabledBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    width: 1, color: Colors.blue.shade50)),
-                            hintStyle: const TextStyle(color: Colors.black)),
-                      ),
-                    )),
-                Container(
-                    padding: const EdgeInsets.all(4),
-                    width: MediaQuery.of(context).size.width / 2.3,
-                    constraints:
-                        const BoxConstraints(minWidth: 200, maxWidth: 250),
-                    child: IntrinsicWidth(
-                        child: TextField(
-                      maxLines: 1,
-                      controller: searchfieldcontroller,
-                      style: const TextStyle(color: Colors.black),
-                      decoration: InputDecoration(
-                          contentPadding: const EdgeInsets.all(4),
-                          hintText: 'گەڕان',
-                          filled: true,
-                          fillColor: Colors.white,
-                          border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10.0)),
-                          enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                  width: 1, color: Colors.blue.shade50)),
-                          hintStyle: const TextStyle(color: Colors.black)),
-                    ))),
-                IconButton(
-                    onPressed: () {
-                      String namesearchstr = searchfieldcontroller.text;
-                      String daysearchstr = dayfieldcontroller.text;
-                      String monthsearchstr = monthfieldcontroller.text;
-                      String yearsearchstr = yearfieldcontroller.text;
-
-                      // user searchs by date or name
-                      if (isSearchByDate == true) {
-                        //user searchs only by date
-                        if (searchfieldcontroller.text == "") {
-                          // if user searchs by day and other
-                          if (dayfieldcontroller.text != "") {
-                            setState(() {
-                              jsonData.clear();
-
-                              for (var userData in data) {
-                                if (userData.day == daysearchstr &&
-                                    userData.month == monthsearchstr &&
-                                    userData.year == yearsearchstr) {
-                                  Map<String, dynamic> userMap = {
-                                    'id': userData.id,
-                                    'name': userData.name,
-                                    'note': userData.note,
-                                    'money': userData.money,
-                                    'year': userData.year,
-                                    'month': userData.month,
-                                    'day': userData.day,
-                                    'address': userData.address,
-                                    'phoneNo': userData.phoneNo,
-                                    'date': userData.date
-                                  };
-                                  jsonData.add(userMap);
-                                }
-                              }
-
-                              rowCounts = jsonData.length.toString();
-                              moneySum = 0;
-                              for (var element in jsonData) {
-                                moneySum += double.parse(element['money']);
-                              }
-                            });
-                          }
-                          //user wants only search by year
-                          else if (dayfieldcontroller.text == "" &&
-                              monthfieldcontroller.text == "") {
-                            setState(() {
-                              jsonData.clear();
-
-                              for (var userData in data) {
-                                if (userData.year == yearsearchstr) {
-                                  Map<String, dynamic> userMap = {
-                                    'id': userData.id,
-                                    'name': userData.name,
-                                    'note': userData.note,
-                                    'money': userData.money,
-                                    'year': userData.year,
-                                    'month': userData.month,
-                                    'day': userData.day,
-                                    'address': userData.address,
-                                    'phoneNo': userData.phoneNo,
-                                    'date': userData.date
-                                  };
-                                  jsonData.add(userMap);
-                                }
-                              }
-
-                              rowCounts = jsonData.length.toString();
-                              moneySum = 0;
-                              for (var element in jsonData) {
-                                moneySum += double.parse(element['money']);
-                              }
-                            });
-                          }
-                          //if user searchs only by month and year
-                          else {
-                            setState(() {
-                              jsonData.clear();
-
-                              for (var userData in data) {
-                                if (userData.month == monthsearchstr &&
-                                    userData.year == yearsearchstr) {
-                                  Map<String, dynamic> userMap = {
-                                    'id': userData.id,
-                                    'name': userData.name,
-                                    'note': userData.note,
-                                    'money': userData.money,
-                                    'year': userData.year,
-                                    'month': userData.month,
-                                    'day': userData.day,
-                                    'address': userData.address,
-                                    'phoneNo': userData.phoneNo,
-                                    'date': userData.date
-                                  };
-                                  jsonData.add(userMap);
-                                }
-                              }
-
-                              rowCounts = jsonData.length.toString();
-                              moneySum = 0;
-                              for (var element in jsonData) {
-                                moneySum += double.parse(element['money']);
-                              }
-                            });
-                          }
-                        }
-                        //user searchs by name and date
-                        else {
-                          // if user searchs by day and other
-                          if (dayfieldcontroller.text != "") {
-                            setState(() {
-                              jsonData.clear();
-
-                              for (var userData in data) {
-                                if (userData.name.contains(namesearchstr) &&
-                                    userData.day == daysearchstr &&
-                                    userData.month == monthsearchstr &&
-                                    userData.year == yearsearchstr) {
-                                  Map<String, dynamic> userMap = {
-                                    'id': userData.id,
-                                    'name': userData.name,
-                                    'note': userData.note,
-                                    'money': userData.money,
-                                    'year': userData.year,
-                                    'month': userData.month,
-                                    'day': userData.day,
-                                    'address': userData.address,
-                                    'phoneNo': userData.phoneNo,
-                                    'date': userData.date
-                                  };
-                                  jsonData.add(userMap);
-                                }
-                              }
-
-                              rowCounts = jsonData.length.toString();
-                              moneySum = 0;
-                              for (var element in jsonData) {
-                                moneySum += double.parse(element['money']);
-                              }
-                            });
-                          }
-                          //if user searchs only by month and year
-                          else {
-                            setState(() {
-                              jsonData.clear();
-
-                              for (var userData in data) {
-                                if (userData.name.contains(namesearchstr) &&
-                                    userData.month == monthsearchstr &&
-                                    userData.year == yearsearchstr) {
-                                  Map<String, dynamic> userMap = {
-                                    'id': userData.id,
-                                    'name': userData.name,
-                                    'note': userData.note,
-                                    'money': userData.money,
-                                    'year': userData.year,
-                                    'month': userData.month,
-                                    'day': userData.day,
-                                    'address': userData.address,
-                                    'phoneNo': userData.phoneNo,
-                                    'date': userData.date
-                                  };
-                                  jsonData.add(userMap);
-                                }
-                              }
-
-                              rowCounts = jsonData.length.toString();
-                              moneySum = 0;
-                              for (var element in jsonData) {
-                                moneySum += double.parse(element['money']);
-                              }
-                            });
-                          }
-                        }
-                      }
-                      //user searchs by name
-                      else {
-                        setState(() {
-                          jsonData.clear();
-
-                          for (var userData in data) {
-                            if (userData.name.contains(namesearchstr)) {
-                              Map<String, dynamic> userMap = {
-                                'id': userData.id,
-                                'name': userData.name,
-                                'note': userData.note,
-                                'money': userData.money,
-                                'year': userData.year,
-                                'month': userData.month,
-                                'day': userData.day,
-                                'address': userData.address,
-                                'phoneNo': userData.phoneNo,
-                                'date': userData.date
-                              };
-                              jsonData.add(userMap);
-                            }
-                          }
-
-                          rowCounts = jsonData.length.toString();
-                          moneySum = 0;
-                          for (var element in jsonData) {
-                            moneySum += double.parse(element['money']);
-                          }
-                        });
-                      }
-                    },
-                    icon: const Icon(
-                      Icons.search,
-                      color: Colors.white,
-                    ))
-              ]))),
-      body: SfDataGrid(
-          selectionMode: SelectionMode.single,
-          source: dataSource,
-          
-          gridLinesVisibility: GridLinesVisibility.both,
-          columnWidthMode: ColumnWidthMode.fitByCellValue,
-          columns: [
-            GridColumn(
-                visible: false,
-                columnName: 'id',
-                columnWidthMode: ColumnWidthMode.fill,
-                label: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 0,
+      ),
+      body: Container(
+          color: Colors.white,
+          child: SfDataGridTheme(
+            data: const SfDataGridThemeData(headerColor: Colors.white),
+            child: SfDataGrid(
+              allowPullToRefresh: true,
+              allowSorting: true,
+              allowSwiping: true,
+              source: _gavenDataSource,
+              columns: <GridColumn>[
+                GridColumn(
+                  visible: false,
+                  columnName: 'id',
+                  label: Container(
                     alignment: Alignment.center,
-                    child: const Text(
-                      'id',
-                      overflow: TextOverflow.ellipsis,
-                    ))),
-            GridColumn(
-                columnName: 'name',
-                columnWidthMode: ColumnWidthMode.fill,
-                label: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: const Text('ID'),
+                  ),
+                ),
+                GridColumn(
+                  columnWidthMode: ColumnWidthMode.fill,
+                  columnName: 'nameAndNote',
+                  label: Container(
                     alignment: Alignment.center,
-                    child: const Text(
-                      'ناو',
-                      overflow: TextOverflow.ellipsis,
-                    ))),
-            GridColumn(
-                columnName: 'Note',
-                columnWidthMode: ColumnWidthMode.fill,
-                label: Container(
+                    child: const Text('ناو\nتێبینی'),
+                  ),
+                ),
+                GridColumn(
+                  columnWidthMode: ColumnWidthMode.fitByCellValue,
+                  columnName: 'moneyAndPhone',
+                  label: Container(
                     alignment: Alignment.center,
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: const Text(
-                      'تێبینی',
-                      overflow: TextOverflow.ellipsis,
-                    ))),
-            GridColumn(
-                columnName: 'Money',
-                columnWidthMode: ColumnWidthMode.fill,
-                label: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: const Text('بڕی پارە\nژ.مۆبایل'),
+                  ),
+                ),
+                GridColumn(
+                  columnWidthMode: ColumnWidthMode.fitByCellValue,
+                  columnName: 'AddressAndDate',
+                  label: Container(
                     alignment: Alignment.center,
-                    child: const Text(
-                      'بڕی پارە',
-                      overflow: TextOverflow.ellipsis,
-                    ))),
-            GridColumn(
-                columnName: 'date',
-                columnWidthMode: ColumnWidthMode.fill,
-                label: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    alignment: Alignment.center,
-                    child: const Text(
-                      'بەروار',
-                      overflow: TextOverflow.ellipsis,
-                    ))),
-            GridColumn(
-                columnName: 'Address',
-                columnWidthMode: ColumnWidthMode.fill,
-                label: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    alignment: Alignment.center,
-                    child: const Text(
-                      'ناونیشان',
-                      overflow: TextOverflow.ellipsis,
-                    ))),
-            GridColumn(
-                columnName: 'PhoneNo',
-                columnWidthMode: ColumnWidthMode.fill,
-                label: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    alignment: Alignment.center,
-                    child: const Text(
-                      'ژمارە تەلەفون',
-                      overflow: TextOverflow.ellipsis,
-                    ))),
-          ]),
+                    child: const Text('بەروار\nناونیشان'),
+                  ),
+                ),
+              ],
+              selectionMode: SelectionMode.single,
+              navigationMode: GridNavigationMode.row,
+            ),
+          )),
     );
   }
 }
 
-late List<String> cellValues;
+class GavenDataSource extends DataGridSource {
+  List<DataGridRow> _dataGridRows = [];
 
-class _MyDataSource extends DataGridSource {
-  _MyDataSource(this.source, this.context);
-  final BuildContext context;
-  final List<DataGridRow> source;
-
+  GavenDataSource(List<Gavenmodel> gavenModels) {
+    _dataGridRows = gavenModels.map<DataGridRow>((gavenModel) {
+      return DataGridRow(cells: [
+        DataGridCell<int>(columnName: 'id', value: gavenModel.id),
+        DataGridCell<String>(
+            columnName: 'nameAndNote',
+            value: '${gavenModel.name}\n${gavenModel.note}'),
+        DataGridCell<String>(
+            columnName: 'moneyAndPhone',
+            value: '${gavenModel.money}\n${gavenModel.phone}'),
+        DataGridCell<String>(
+            columnName: 'AddressAndDate',
+            value: '${gavenModel.address}\n${gavenModel.date}'),
+      ]);
+    }).toList();
+  }
   @override
-  List<DataGridRow> get rows => source;
-
-  int currentCellIndex = 0; // Initialize with 0 to display the first cell
-
-  late List<String> cellValues;
+  List<DataGridRow> get rows => _dataGridRows;
 
   @override
   DataGridRowAdapter buildRow(DataGridRow row) {
-    cellValues = List.filled(row.getCells().length, '');
-
     return DataGridRowAdapter(
-      cells: row.getCells().asMap().entries.map<Widget>((entry) {
-        final DataGridCell cell = entry.value;
+      cells: row.getCells().map<Widget>((dataCell) {
+        return Builder(
+          builder: (BuildContext context) {
+            return GestureDetector(
+              onTap: () {
+                int id = row.getCells()[0].value;
+                var d = _list?.firstWhere((x) => x.id == id);
 
-        return Container(
-          alignment: Alignment.center,
-          padding: const EdgeInsets.all(2.0),
-          child: InkWell(
-            child: Text(
-              cell.value.toString(),
-              textAlign: TextAlign.right,
-            ),
-            onTap: () async {
-              // ignore: unused_local_variable
-              String id,
-                  name,
-                  note,
-                  money,
-                  date,
-                  address,
-                  phoneNo;
-
-              for (int i = 0; i < row.getCells().length; i++) {
-                cellValues[i] = row.getCells()[i].value.toString();
-              }
-
-              id = cellValues[0].toString();
-              name = cellValues[1].toString();
-              note = cellValues[2].toString();
-              money = cellValues[3].toString();
-              date = cellValues[4];
-              address = cellValues[5];
-              phoneNo = cellValues[6];
-              await Clipboard.setData(ClipboardData(
-                  text:
-                      'ناو: $name \nتێبینی: $note \nبڕی پارە : $money \nبەروار : $date \n ناونیشان: $address \n ژمارە تەلەفون: $phoneNo'));
-            },
-            onDoubleTap: () {
-              for (int i = 0; i < row.getCells().length; i++) {
-                cellValues[i] = row.getCells()[i].value.toString();
-              }
-
-              for (var userData in data) {
-                if (userData.id.toString() == cellValues[0]) {
-
-                strday = userData.day;
-                  strmonth = userData.month;
-                  stryear = userData.year;
-                }
-              }
-
-              Navigator.push(
+                Clipboard.setData(ClipboardData(text: d.toString())).then((_) {
+                  // Show confirmation message
+                  // ignore: use_build_context_synchronously
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('کۆپی کرا')),
+                  );
+                });
+              },
+              onDoubleTap: () {
+                int id = row.getCells()[0].value;
+                Gavenmodel d =
+                    _list?.firstWhere((x) => x.id == id) as Gavenmodel;
+                Navigator.push(
                   context,
-                  MaterialPageRoute(
-                      builder: (context) => GavenUpdateView(
-                            fieldstrId: cellValues[0].toString(),
-                            fieldstrName: cellValues[1],
-                            fieldstrnote: cellValues[2],
-                            fieldstrmoney: cellValues[3],
-                            fieldstraddress: cellValues[5],
-                            fieldstrphoneNo: cellValues[6],
-                            fieldstrday:  strday,
-                            fieldstrmonth:  strmonth,
-                            fieldstryear: stryear,
-                          )));
-            },
-          ),
+                  MaterialPageRoute(builder: (context) => GavenUpdateView(d)),
+                );
+              },
+              child: Container(
+                color: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                alignment: Alignment.centerRight,
+                child: Text(
+                  dataCell.value.toString(),
+                  textAlign: TextAlign.start,
+                ),
+              ),
+            );
+          },
         );
       }).toList(),
     );
