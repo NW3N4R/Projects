@@ -1,13 +1,11 @@
-// ignore_for_file: file_names, non_constant_identifier_names
-
 import 'package:flutter/material.dart';
 import 'package:garmian_house_of_charity/Helpers/configureapi.dart';
 import 'package:garmian_house_of_charity/Models/combinedGaven.dart';
 import 'package:garmian_house_of_charity/Models/gavenautosets.dart';
 import 'package:garmian_house_of_charity/Models/gavenmodel.dart';
-import 'package:garmian_house_of_charity/Views/gavenviews.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:intl/intl.dart';
+import 'package:garmian_house_of_charity/main.dart';
+import 'package:intl/intl.dart' as intl;
 
 // ignore: must_be_immutable
 class GavenUploaderView extends StatelessWidget {
@@ -18,7 +16,9 @@ class GavenUploaderView extends StatelessWidget {
     return const MaterialApp(
       title: 'خشتەی بەخشراو >> نوێکردنەوە',
       debugShowCheckedModeBanner: false,
-      home: MainGavenUploader(),
+      home: Directionality(
+          textDirection: TextDirection.rtl, // Set the text direction to RTL
+          child: MainGavenUploader()),
     );
   }
 }
@@ -44,7 +44,7 @@ class HomePage extends State<MainGavenUploader> {
   DateTime _selectedDate = DateTime.now();
   DateTime dt = DateTime.now();
 
-  Future<void> updateVoid() async {
+  Future<void> updateVoid(BuildContext context) async {
     Gavenmodel model = Gavenmodel(
         id: 0,
         name: nametxtcontroller.text,
@@ -72,12 +72,25 @@ class HomePage extends State<MainGavenUploader> {
       Aday = ' شەممە';
     }
     GavenAutoSet autoSet = GavenAutoSet(
-        date: DateFormat('yyyy-MM-dd').format(now),
-        time: DateFormat('HH:mm').format(now),
+        date: intl.DateFormat('yyyy-MM-dd').format(now),
+        time: intl.DateFormat('HH:mm').format(now),
         day: Aday);
     Combinedgaven modelToSend =
         Combinedgaven(Gaven: model, AutoTimeSet: autoSet);
-      await ConfigureApi().post("GavenMoney/create", modelToSend);
+    bool isup = await ConfigureApi().post("GavenMoney/create", modelToSend);
+    if (isup) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('تۆمار کرا')),
+        );
+      }
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('کێشەیەک ڕوویدا دووبارە هەوڵبدەرەوە')),
+        );
+      }
+    }
   }
 
   void _showDatePicker(BuildContext context) {
@@ -113,8 +126,12 @@ class HomePage extends State<MainGavenUploader> {
           actions: <Widget>[
             IconButton(
                 onPressed: () {
-                  Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) => const gavenViews()));
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>  TabbedApp(initialIndex: 1,),
+                    ),
+                  );
                 },
                 icon: const Icon(Icons.arrow_forward))
           ],
@@ -286,7 +303,7 @@ class HomePage extends State<MainGavenUploader> {
               children: [
                 Expanded(
                     child: ElevatedButton(
-                  onPressed: () => updateVoid(),
+                  onPressed: () => updateVoid(context),
                   style: ElevatedButton.styleFrom(
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(5),

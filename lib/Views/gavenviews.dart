@@ -4,38 +4,15 @@ import 'package:garmian_house_of_charity/Helpers/configureapi.dart';
 import 'package:garmian_house_of_charity/Models/gavenmodel.dart';
 import 'package:garmian_house_of_charity/Updateres/gavenupdater.dart';
 import 'package:garmian_house_of_charity/Uploaders/gavenUplaoder.dart';
-import 'package:garmian_house_of_charity/mydrawer.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:syncfusion_flutter_core/theme.dart';
 
-void main() {
-  runApp(const gavenViews());
-}
-
-// ignore: camel_case_types
-class gavenViews extends StatelessWidget {
-  const gavenViews({super.key});
+class GavenView extends StatefulWidget {
+  const GavenView({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      theme: ThemeData(
-          appBarTheme: const AppBarTheme(backgroundColor: Colors.white)),
-      debugShowCheckedModeBanner: false,
-      title: 'خشتەی بەخشراو',
-      home: const Directionality(
-        textDirection: TextDirection.rtl, // Set the text direction to RTL
-        child: MainPage(),
-      ),
-    );
-  }
-}
-
-class MainPage extends StatefulWidget {
-  const MainPage({super.key});
-
-  @override
-  GavenHome createState() => GavenHome();
+  // ignore: library_private_types_in_public_api
+  _GavenHome createState() => _GavenHome();
 }
 
 bool isSearchByDate = false;
@@ -49,7 +26,7 @@ final daytxt = TextEditingController();
 String r = "0", money = "0";
 Iterable<Gavenmodel>? _list = [];
 
-class GavenHome extends State<MainPage> {
+class _GavenHome extends State<GavenView> {
   GavenDataSource _gavenDataSource = GavenDataSource([]);
 
   @override
@@ -59,12 +36,14 @@ class GavenHome extends State<MainPage> {
   }
 
   Future<void> _loadDataOnStart() async {
-    // Call the API using the `requestData` method
     _list = await ConfigureApi().requestData<Gavenmodel>(
         "GavenMoney", (json) => Gavenmodel.fromJson(json));
-    setState(() {
-      _gavenDataSource = GavenDataSource(_list?.toList() ?? []);
-    });
+    if (mounted) {
+      setState(() {
+        super.dispose();
+        _gavenDataSource = GavenDataSource(_list?.toList() ?? []);
+      });
+    }
   }
 
   void search() {
@@ -266,96 +245,100 @@ class GavenHome extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: MyDrawer(
-        selectedIndex: 2,
-      ),
-      extendBodyBehindAppBar:
-          false, // Ensures the AppBar background color is preserved
-      appBar: AppBar(
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text(
-              'خشتەی بەخشراو',
-              style: TextStyle(fontFamily: 'DroidArabic'),
-            ),
-            Row(mainAxisAlignment: MainAxisAlignment.start, children: [
-              IconButton(
-                  onPressed: () {
-                    Navigator.push(
+        appBar: AppBar(
+          leading: SizedBox(),
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'خشتەی بەخشراو',
+                style: TextStyle(fontFamily: 'DroidArabic'),
+              ),
+              Row(mainAxisAlignment: MainAxisAlignment.start, children: [
+                IconButton(
+                    onPressed: () {
+                      Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => const GavenUploaderView()));
-                  },
-                  icon: const Icon(Icons.add)),
-              IconButton(
-                  onPressed: () {
-                    setState(() {
-                      _showPopup(context);
-                    });
-                  },
-                  icon: const Icon(Icons.search)),
-              IconButton(
-                  onPressed: () {
-                    setState(() {
-                      _gavenDataSource = GavenDataSource(_list?.toList() ?? []);
-                    });
-                  },
-                  icon: const Icon(Icons.clear)),
-            ])
-          ],
+                          builder: (context) => const GavenUploaderView(),
+                        ),
+                      ).then((value) {
+                        Navigator.popUntil(context,
+                            ModalRoute.withName('/')); // Pop until root
+                      });
+                    },
+                    icon: const Icon(Icons.add)),
+                IconButton(
+                    onPressed: () {
+                      setState(() {
+                        _showPopup(context);
+                      });
+                    },
+                    icon: const Icon(Icons.search)),
+                IconButton(
+                    onPressed: () {
+                      setState(() {
+                        _gavenDataSource =
+                            GavenDataSource(_list?.toList() ?? []);
+                      });
+                    },
+                    icon: const Icon(Icons.clear)),
+              ])
+            ],
+          ),
+          backgroundColor: Colors.white,
+          elevation: 0,
         ),
-        backgroundColor: Colors.white,
-        elevation: 0,
-      ),
-      body: Container(
+        body: Container(
           color: Colors.white,
-          child: SfDataGridTheme(
-            data: const SfDataGridThemeData(headerColor: Colors.white),
-            child: SfDataGrid(
-              allowPullToRefresh: true,
-              allowSorting: true,
-              allowSwiping: true,
-              source: _gavenDataSource,
-              columns: <GridColumn>[
-                GridColumn(
-                  visible: false,
-                  columnName: 'id',
-                  label: Container(
-                    alignment: Alignment.center,
-                    child: const Text('ID'),
-                  ),
+          child: Directionality(
+              textDirection: TextDirection.rtl,
+              child: SfDataGridTheme(
+                data: const SfDataGridThemeData(headerColor: Colors.white),
+                child: SfDataGrid(
+                  allowPullToRefresh: true,
+                  allowSorting: true,
+                  allowSwiping: true,
+                  source: _gavenDataSource,
+                  columns: <GridColumn>[
+                    GridColumn(
+                      visible: false,
+                      columnName: 'id',
+                      label: Container(
+                        alignment: Alignment.center,
+                        child: const Text('ID'),
+                      ),
+                    ),
+                    GridColumn(
+                      columnWidthMode: ColumnWidthMode.fill,
+                      columnName: 'nameAndNote',
+                      label: Container(
+                        alignment: Alignment.center,
+                        child: const Text('ناو\nتێبینی'),
+                      ),
+                    ),
+                    GridColumn(
+                      columnWidthMode: ColumnWidthMode.fitByCellValue,
+                      columnName: 'moneyAndPhone',
+                      label: Container(
+                        alignment: Alignment.center,
+                        child: const Text('بڕی پارە\nژ.مۆبایل'),
+                      ),
+                    ),
+                    GridColumn(
+                      columnWidthMode: ColumnWidthMode.fitByCellValue,
+                      columnName: 'AddressAndDate',
+                      label: Container(
+                        alignment: Alignment.center,
+                        child: const Text('بەروار\nناونیشان'),
+                      ),
+                    ),
+                  ],
+                  selectionMode: SelectionMode.single,
+                  navigationMode: GridNavigationMode.row,
                 ),
-                GridColumn(
-                  columnWidthMode: ColumnWidthMode.fill,
-                  columnName: 'nameAndNote',
-                  label: Container(
-                    alignment: Alignment.center,
-                    child: const Text('ناو\nتێبینی'),
-                  ),
-                ),
-                GridColumn(
-                  columnWidthMode: ColumnWidthMode.fitByCellValue,
-                  columnName: 'moneyAndPhone',
-                  label: Container(
-                    alignment: Alignment.center,
-                    child: const Text('بڕی پارە\nژ.مۆبایل'),
-                  ),
-                ),
-                GridColumn(
-                  columnWidthMode: ColumnWidthMode.fitByCellValue,
-                  columnName: 'AddressAndDate',
-                  label: Container(
-                    alignment: Alignment.center,
-                    child: const Text('بەروار\nناونیشان'),
-                  ),
-                ),
-              ],
-              selectionMode: SelectionMode.single,
-              navigationMode: GridNavigationMode.row,
-            ),
-          )),
-    );
+              )),
+        ));
   }
 }
 
@@ -393,8 +376,6 @@ class GavenDataSource extends DataGridSource {
                 var d = _list?.firstWhere((x) => x.id == id);
 
                 Clipboard.setData(ClipboardData(text: d.toString())).then((_) {
-                  // Show confirmation message
-                  // ignore: use_build_context_synchronously
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('کۆپی کرا')),
                   );

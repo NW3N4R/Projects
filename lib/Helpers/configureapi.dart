@@ -91,4 +91,19 @@ class ConfigureApi {
     }
     return false;
   }
+
+  Future<bool> Login(String password) async {
+    // Construct the full URL using the baseUri and subUri
+    final Uri fullUri = Uri.parse('$_baseUri/home/Credentials');
+
+    final response = await _httpClient.get(fullUri, headers: _defaultHeaders);
+    if (response.statusCode == 200) {
+      final responseBody = response.body;
+      final String pass = jsonDecode(responseBody);
+      return password == pass;
+    } else {
+      print(response.reasonPhrase);
+      return false;
+    }
+  }
 }

@@ -3,7 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:garmian_house_of_charity/Helpers/configureapi.dart';
 import 'package:garmian_house_of_charity/Models/gavenmodel.dart';
-import 'package:garmian_house_of_charity/Views/gavenviews.dart';
+import 'package:garmian_house_of_charity/main.dart';
 
 late Gavenmodel gaven;
 
@@ -65,7 +65,7 @@ class HomePage extends State<MainGavenUpdater> {
     );
   }
 
-  Future<void> updateVoid() async {
+  Future<void> updateVoid(BuildContext context) async {
     gaven.name = nametxtcontroller.text;
     gaven.money = moneytxtcontroller.text;
     gaven.note = notetxtcontroller.text;
@@ -73,7 +73,20 @@ class HomePage extends State<MainGavenUpdater> {
     gaven.phone = phonetxtcontroller.text;
     gaven.date =
         '${_selectedDate.year}-${_selectedDate.month}-${_selectedDate.day}';
-    await ConfigureApi().put('GavenMoney/Update', gaven);
+    bool isup = await ConfigureApi().put('GavenMoney/Update', gaven);
+    if (isup) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('نوێ کرایەوە')),
+        );
+      }
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('کێشەیەک ڕوویدا دووبارە هەوڵبدەرەوە')),
+        );
+      }
+    }
   }
 
   void _showPopup(BuildContext context) {
@@ -104,8 +117,13 @@ class HomePage extends State<MainGavenUpdater> {
     bool isdelete = await ConfigureApi().delete('GavenMoney/Delete', gaven.id);
 
     if (isdelete) {
-      Navigator.of(context)
-          .push(MaterialPageRoute(builder: (context) => const gavenViews()));
+      if (mounted) {
+        MaterialPageRoute(
+          builder: (context) => TabbedApp(
+            initialIndex: 1,
+          ),
+        );
+      }
     }
   }
 
@@ -129,8 +147,14 @@ class HomePage extends State<MainGavenUpdater> {
             actions: <Widget>[
               IconButton(
                   onPressed: () {
-                    Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) => const gavenViews()));
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => TabbedApp(
+                          initialIndex: 1,
+                        ),
+                      ),
+                    );
                   },
                   icon: const Icon(Icons.arrow_forward))
             ],
@@ -307,7 +331,7 @@ class HomePage extends State<MainGavenUpdater> {
                           SizedBox(
                               width: MediaQuery.of(context).size.width - 150,
                               child: ElevatedButton(
-                                onPressed: () => updateVoid(),
+                                onPressed: () => updateVoid(context),
                                 style: ElevatedButton.styleFrom(
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(5),

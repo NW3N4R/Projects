@@ -1,172 +1,77 @@
 import 'package:flutter/material.dart';
-import 'package:garmian_house_of_charity/Helpers/configureapi.dart';
-import 'package:garmian_house_of_charity/Models/homemodel.dart';
-import 'package:garmian_house_of_charity/mydrawer.dart';
 import 'package:flutter/services.dart';
+import 'package:garmian_house_of_charity/Views/gavenviews.dart';
+import 'package:garmian_house_of_charity/Views/home.dart'; // Import your home page
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:garmian_house_of_charity/lockscreen.dart';
 
 void main() {
-  runApp(const MainApp());
+  runApp(MaterialApp(
+    debugShowCheckedModeBanner: false,
+    showSemanticsDebugger: false,
+    home: Lockscreen(), // Your initial screen
+  ));
 }
 
-class MainApp extends StatelessWidget {
-  const MainApp({super.key});
+class TabbedApp extends StatefulWidget {
+  final int initialIndex;
 
+  const TabbedApp({super.key, required this.initialIndex});
   @override
-  Widget build(BuildContext context) {
-    return const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: Directionality(
-        textDirection: TextDirection.rtl,
-        child: MainPage(),
-      ),
-    );
-  }
+  _TabbedAppState createState() => _TabbedAppState();
 }
 
-class MainPage extends StatefulWidget {
-  const MainPage({super.key});
-
-  @override
-  HomePage createState() => HomePage();
-}
-
-String totalRow = '';
-
-class HomePage extends State<MainPage> {
+class _TabbedAppState extends State<TabbedApp> {
+  int selectedIndex = 0;
   @override
   void initState() {
     super.initState();
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]);
-    _loadDataOnStart();
-  }
-
-  Iterable<HomeModel>? mainlist = [];
-  Future<void> _loadDataOnStart() async {
-    // Call the API using the `requestData` method
-    List<HomeModel>? data = await ConfigureApi()
-        .requestData<HomeModel>("home", (json) => HomeModel.fromJson(json));
-    if (data != null) {
-      setState(() {
-        mainlist = data
-            .where((x) => !x.title.contains('کۆی ناوە تۆمارکراوەکان'))
-            .toList()
-          ..sort((a, b) => b.number.compareTo(a.number));
-        totalRow = data
-            .firstWhere((x) => x.title.contains('کۆی ناوە تۆمارکراوەکان'))
-            .no;
-      });
-    } else {}
+    selectedIndex = widget.initialIndex;
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        drawer: MyDrawer(
-          selectedIndex: 1,
+    return MaterialApp(
+      // Wrap with MaterialApp
+      debugShowCheckedModeBanner: false,
+      locale: Locale('ar', 'IQ'), // Set the locale to Arabic (Iraq)
+      localizationsDelegates: [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ],
+      supportedLocales: [
+        const Locale('ar', 'IQ'), // Arabic (Iraq)
+      ],
+      home: Scaffold(
+        extendBodyBehindAppBar: true, // Body extends behind the status bar
+        body: Container(
+          color: Colors.white,
+          child: selectedIndex == 0
+              ? HomeView() // Show HomeView if selectedIndex is 0
+              : GavenView(), // Show GavenHome for other tabs
         ),
-        appBar: AppBar(
-          leading: Builder(
-              builder: (context) => Center(
-                    child: IconButton(
-                      icon: const Icon(
-                        Icons.menu,
-                        color: Colors.black,
-                      ),
-                      onPressed: () {
-                        Scaffold.of(context).openDrawer();
-                      },
-                    ),
-                  )),
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          title: const Text(
-            'ماڵی خێرخوازان و هەژارانی گەرمیان',
-            style: TextStyle(color: Colors.black, fontSize: 18),
-          ),
+        bottomNavigationBar: BottomNavigationBar(
+          currentIndex: selectedIndex, // Highlight the selected tab
+          onTap: (int index) {
+            setState(() {
+              selectedIndex = index; // Update the selected tab
+            });
+          },
+          backgroundColor: Colors.white,
+          selectedItemColor: Colors.blue,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home),
+              label: 'سەرەتا',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.attach_money),
+              label: 'بەخشراو',
+            ),
+          ],
         ),
-        body: SingleChildScrollView(
-            child: Column(children: [
-          Container(
-              margin: const EdgeInsets.all(5),
-              width: MediaQuery.of(context).size.width,
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                  color: Colors.blue.shade300,
-                  borderRadius: BorderRadius.circular(3)),
-              child: IntrinsicHeight(
-                child: Column(children: [
-                  const Text(
-                    'ماڵی خێرخوازان و هەژارانی گەرمیان',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w900,
-                      fontSize: 19,
-                    ),
-                  ),
-                  Text(
-                    '$totalRow هێلی دیاری کراو لە سیستەمەکەدا نووسراوە',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold),
-                  ),
-                ]),
-              )),
-          DataTable(
-            columns: [
-              DataColumn(
-                label: const Text(
-                  'خشتە',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-                onSort: (columnIndex, ascending) {},
-              ),
-              const DataColumn(
-                label: Text(
-                  'ژمارە',
-                  style: TextStyle(
-                    color: Colors.blue,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-              ),
-            ],
-            rows: mainlist?.map((model) {
-                  return DataRow(cells: [
-                    DataCell(
-                      Text(
-                        model.title,
-                        style: const TextStyle(
-                          color: Colors.black87,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                    DataCell(
-                      Text(
-                        model.no,
-                        style: const TextStyle(
-                          color: Colors.blue,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ]);
-                }).toList() ??
-                [],
-          )
-        ])));
+      ),
+    );
   }
 }
