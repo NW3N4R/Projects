@@ -24,7 +24,7 @@ class _lockscreen extends State<Lockscreen> {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   }
   String? _errorText;
-  TextEditingController _passcontroller = TextEditingController();
+  final TextEditingController _passcontroller = TextEditingController();
 
   void login(BuildContext context) async {
     bool isAuth = await ConfigureApi().Login(_passcontroller.text);

@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:garmian_house_of_charity/Helpers/configureapi.dart';
 import 'package:garmian_house_of_charity/Models/combinedGaven.dart';
 import 'package:garmian_house_of_charity/Models/gavenautosets.dart';
 import 'package:garmian_house_of_charity/Models/gavenmodel.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:garmian_house_of_charity/Views/gavenviews.dart';
 import 'package:garmian_house_of_charity/main.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/date_time_patterns.dart';
 import 'package:intl/intl.dart' as intl;
 
 // ignore: must_be_immutable
@@ -27,6 +31,7 @@ class MainGavenUploader extends StatefulWidget {
   const MainGavenUploader({
     super.key,
   });
+
   @override
   HomePage createState() => HomePage();
 }
@@ -38,13 +43,52 @@ var notetxtcontroller = TextEditingController();
 var addresstxtcontroller = TextEditingController();
 var phonenotxtcontroller = TextEditingController();
 
+var monthtxtcontroller =
+    TextEditingController(text: DateTime.now().month.toString());
+var daytxtcontroller =
+    TextEditingController(text: DateTime.now().day.toString());
+
+class CustomRangeFormatter extends TextInputFormatter {
+  final int min;
+  final int max;
+
+  CustomRangeFormatter({required this.min, required this.max});
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    if (newValue.text.isEmpty) {
+      return newValue;
+    }
+
+    final int? value = int.tryParse(newValue.text);
+    if (value == null || value < min || value > max) {
+      // If the value is not within range, revert to the old value
+      return oldValue;
+    }
+
+    // Otherwise, accept the new value
+    return newValue;
+  }
+}
+
 class HomePage extends State<MainGavenUploader> {
   int delcount = 0;
   DateTime now = DateTime.now();
-  DateTime _selectedDate = DateTime.now();
   DateTime dt = DateTime.now();
 
   Future<void> updateVoid(BuildContext context) async {
+int? day = int.tryParse(daytxtcontroller.text);
+    int? month = int.tryParse(monthtxtcontroller.text);
+
+    if (day == null) {
+      daytxtcontroller.text = DateTime.now().day.toString();
+    }
+    if (month == null) {
+      monthtxtcontroller.text = DateTime.now().month.toString();
+    }
     Gavenmodel model = Gavenmodel(
         id: 0,
         name: nametxtcontroller.text,
@@ -52,8 +96,7 @@ class HomePage extends State<MainGavenUploader> {
         note: notetxtcontroller.text,
         phone: phonenotxtcontroller.text,
         address: addresstxtcontroller.text,
-        date:
-            '${_selectedDate.year}-${_selectedDate.month}-${_selectedDate.day}');
+        date: '${selectedYear}-${monthtxtcontroller.text}-${daytxtcontroller.text}');
 
     String Aday = dt.weekday.toString();
     if (Aday == '1') {
@@ -70,13 +113,15 @@ class HomePage extends State<MainGavenUploader> {
       Aday = 'شەممە';
     } else if (Aday == '7') {
       Aday = ' شەممە';
-    }
+    } 
+  
     GavenAutoSet autoSet = GavenAutoSet(
         date: intl.DateFormat('yyyy-MM-dd').format(now),
         time: intl.DateFormat('HH:mm').format(now),
         day: Aday);
     Combinedgaven modelToSend =
         Combinedgaven(Gaven: model, AutoTimeSet: autoSet);
+   
     bool isup = await ConfigureApi().post("GavenMoney/create", modelToSend);
     if (isup) {
       if (mounted) {
@@ -93,31 +138,13 @@ class HomePage extends State<MainGavenUploader> {
     }
   }
 
-  void _showDatePicker(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext builder) {
-        return Container(
-          height: 250,
-          color: Colors.white,
-          child: CupertinoDatePicker(
-            initialDateTime: _selectedDate,
-            mode: CupertinoDatePickerMode.date,
-            minimumDate: DateTime(2000),
-            maximumDate: DateTime(2100),
-            onDateTimeChanged: (DateTime newDate) {
-              setState(() {
-                _selectedDate = newDate;
-              });
-            },
-          ),
-        );
-      },
-    );
-  }
+  late int selectedYear = DateTime.now().year;
 
   @override
   Widget build(BuildContext context) {
+    final int currentYear = DateTime.now().year + 1;
+    final int lastYear = currentYear - 1;
+
     return Scaffold(
       appBar: AppBar(
           backgroundColor: Colors.white,
@@ -129,7 +156,9 @@ class HomePage extends State<MainGavenUploader> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) =>  TabbedApp(initialIndex: 1,),
+                      builder: (context) => TabbedApp(
+                        initialIndex: 1,
+                      ),
                     ),
                   );
                 },
@@ -250,8 +279,8 @@ class HomePage extends State<MainGavenUploader> {
                   // width: MediaQuery.of(context).size.width / 2.2,
                   child: TextField(
                     keyboardType: TextInputType.number,
-                    controller: phonenotxtcontroller,
                     textAlign: TextAlign.center,
+                    controller: phonenotxtcontroller,
                     decoration: InputDecoration(
                         contentPadding: const EdgeInsets.only(
                             left: 4, right: 4, top: 1, bottom: 1),
@@ -267,36 +296,94 @@ class HomePage extends State<MainGavenUploader> {
                 ),
               ],
             ),
-            SizedBox(
-                width: double.infinity,
-                child: Padding(
-                  padding: const EdgeInsets.all(5),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'بەروار',
-                        style: TextStyle(fontFamily: 'DroidArabic'),
+            Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    margin: const EdgeInsets.all(4),
+                    child: TextField(
+                      controller: daytxtcontroller,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [
+                        FilteringTextInputFormatter
+                            .digitsOnly, // Allow only numeric characters
+                        CustomRangeFormatter(
+                            min: 1, max: 31), // Set minimum and maximum values
+                      ],
+                      textAlign: TextAlign.center,
+                      decoration: InputDecoration(
+                          contentPadding: const EdgeInsets.only(
+                              left: 4, right: 4, top: 1, bottom: 1),
+                          focusedBorder: OutlineInputBorder(
+                              borderSide:
+                                  BorderSide(color: Colors.blue.shade300)),
+                          enabledBorder: OutlineInputBorder(
+                              borderSide:
+                                  BorderSide(color: Colors.blue.shade200)),
+                          labelText: 'ڕۆژ',
+                          hintText: 'ڕۆژ'),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Container(
+                    margin: const EdgeInsets.all(4),
+                    child: TextField(
+                      controller: monthtxtcontroller,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [
+                        FilteringTextInputFormatter
+                            .digitsOnly, // Allow only numeric characters
+                        CustomRangeFormatter(
+                            min: 1, max: 12), // Set minimum and maximum values
+                      ],
+                      textAlign: TextAlign.center,
+                      decoration: InputDecoration(
+                          contentPadding: const EdgeInsets.only(
+                              left: 4, right: 4, top: 1, bottom: 1),
+                          focusedBorder: OutlineInputBorder(
+                              borderSide:
+                                  BorderSide(color: Colors.blue.shade300)),
+                          enabledBorder: OutlineInputBorder(
+                              borderSide:
+                                  BorderSide(color: Colors.blue.shade200)),
+                          labelText: 'مانگ',
+                          hintText: 'مانگ'),
+                    ),
+                  ),
+                ),
+                Expanded(
+                    child: Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.blue.shade200, width: 1),
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  margin: const EdgeInsets.all(4),
+                  child: DropdownButton(
+                    value: selectedYear,
+                    items: [
+                      DropdownMenuItem(
+                        value: currentYear - 1,
+                        child: Text('${currentYear - 1}'),
                       ),
-                      Container(
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                            border: Border.all(
-                              color: Colors.blue.shade200, // Border color
-                              width: 1,
-                            ),
-                            borderRadius: BorderRadius.circular(3)),
-                        child: TextButton(
-                          onPressed: () => _showDatePicker(context),
-                          child: Text(
-                            '${_selectedDate.year}-${_selectedDate.month}-${_selectedDate.day}',
-                            style: const TextStyle(color: Colors.black),
-                          ),
-                        ),
-                      )
+                      DropdownMenuItem(
+                        value: currentYear,
+                        child: Text('$currentYear'),
+                      ),
                     ],
+                    onChanged: (int? newValue) {
+                      if (newValue != null) {
+                        setState(() {
+                          selectedYear = newValue;
+                        });
+                      }
+                    },
+                    underline: SizedBox(),
+                    style: TextStyle(color: Colors.black, fontSize: 16),
                   ),
                 )),
+              ],
+            ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               crossAxisAlignment: CrossAxisAlignment.end,
