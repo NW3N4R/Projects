@@ -40,7 +40,7 @@ class _GavenHome extends State<GavenView> {
         "GavenMoney", (json) => Gavenmodel.fromJson(json));
     if (mounted) {
       setState(() {
-        super.dispose();
+        // super.dispose();
         _gavenDataSource = GavenDataSource(_list?.toList() ?? []);
       });
     }
@@ -105,139 +105,152 @@ class _GavenHome extends State<GavenView> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: Colors.white,
-          title: Directionality(
-            textDirection: TextDirection.rtl,
-            child: Column(
-              children: [
-                const Text(
-                  'گەڕان',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontFamily: 'DroidArabic',
+        return StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) {
+          return AlertDialog(
+            backgroundColor: Colors.white,
+            title: Directionality(
+              textDirection: TextDirection.rtl,
+              child: Column(
+                children: [
+                  const Text(
+                    'گەڕان',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontFamily: 'DroidArabic',
+                    ),
                   ),
-                ),
-                TextField(
-                  controller: searchtxt,
-                  onChanged: (text) {
-                    search();
-                  },
-                  decoration: const InputDecoration(
-                    hintText: 'گەڕان بە پێی ناو و تێبینی و ناونیشان',
+                  TextField(
+                    controller: searchtxt,
+                    onChanged: (text) {
+                      setState(() {
+                        search();
+                      });
+                    },
+                    decoration: const InputDecoration(
+                      hintText: 'گەڕان بە پێی ناو و تێبینی و ناونیشان',
+                    ),
+                    style: const TextStyle(fontFamily: 'DroidArabic'),
                   ),
-                  style: const TextStyle(fontFamily: 'DroidArabic'),
-                ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        keyboardType: TextInputType.number,
-                        controller: yeartxt,
-                        onChanged: (text) {
-                          search();
-                        },
-                        decoration: const InputDecoration(hintText: 'ساڵ'),
-                        style: const TextStyle(fontFamily: 'DroidArabic'),
-                        inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly,
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 20),
-                    Expanded(
-                      child: TextField(
-                        keyboardType: TextInputType.number,
-                        controller: monthtxt,
-                        onChanged: (text) {
-                          search();
-                        },
-                        decoration: const InputDecoration(hintText: 'مانگ'),
-                        style: const TextStyle(fontFamily: 'DroidArabic'),
-                        inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly,
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 20),
-                    Expanded(
-                      child: TextField(
-                        controller: daytxt,
-                        onChanged: (text) {
-                          search();
-                        },
-                        keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(hintText: 'ڕۆژ'),
-                        style: const TextStyle(fontFamily: 'DroidArabic'),
-                        inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly,
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                Container(
-                  width:
-                      double.infinity, // Ensure the container takes 100% width
-                  alignment:
-                      Alignment.centerRight, // Aligns the content to the right
-                  padding: const EdgeInsets.all(8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  Row(
                     children: [
-                      Text(
-                        'کۆی ناوەکان $r',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontFamily: 'DroidArabic',
+                      Expanded(
+                        child: TextField(
+                          keyboardType: TextInputType.number,
+                          controller: yeartxt,
+                          onChanged: (text) {
+                            setState(() {
+                              search();
+                            });
+                          },
+                          decoration: const InputDecoration(hintText: 'ساڵ'),
+                          style: const TextStyle(fontFamily: 'DroidArabic'),
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'بڕی بەخشراو $money',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontFamily: 'DroidArabic',
+                      const SizedBox(width: 20),
+                      Expanded(
+                        child: TextField(
+                          keyboardType: TextInputType.number,
+                          controller: monthtxt,
+                          onChanged: (text) {
+                            setState(() {
+                              search();
+                            });
+                          },
+                          decoration: const InputDecoration(hintText: 'مانگ'),
+                          style: const TextStyle(fontFamily: 'DroidArabic'),
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 20),
+                      Expanded(
+                        child: TextField(
+                          controller: daytxt,
+                          onChanged: (text) {
+                            setState(() {
+                              search();
+                            });
+                          },
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(hintText: 'ڕۆژ'),
+                          style: const TextStyle(fontFamily: 'DroidArabic'),
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                          ],
                         ),
                       ),
                     ],
                   ),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      child: const Text(
-                        'وەرگرتن',
-                        style: TextStyle(
-                            fontSize: 18,
+                  Container(
+                    width: double
+                        .infinity, // Ensure the container takes 100% width
+                    alignment: Alignment
+                        .centerRight, // Aligns the content to the right
+                    padding: const EdgeInsets.all(8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'کۆی ناوەکان $r',
+                          style: const TextStyle(
+                            fontSize: 14,
                             fontFamily: 'DroidArabic',
-                            color: Colors.black),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'بڕی بەخشراو $money',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontFamily: 'DroidArabic',
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: const Text(
+                          'وەرگرتن',
+                          style: TextStyle(
+                              fontSize: 18,
+                              fontFamily: 'DroidArabic',
+                              color: Colors.black),
+                        ),
                       ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.clear),
-                      onPressed: () {
-                        // Clear logic here, if needed
-                        searchtxt.clear();
-                        yeartxt.clear();
-                        monthtxt.clear();
-                        daytxt.clear();
-                        setState(() {
-                          _gavenDataSource =
-                              GavenDataSource(_list?.toList() ?? []);
-                        });
-                      },
-                    ),
-                  ],
-                ),
-              ],
+                      IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          // Clear logic here, if needed
+                          searchtxt.clear();
+                          yeartxt.clear();
+                          monthtxt.clear();
+                          daytxt.clear();
+                          setState(() {
+                            r = '2'; // Reset the value of r
+                            money = '0'; // Reset the value of money
+                            _gavenDataSource =
+                                GavenDataSource(_list?.toList() ?? []);
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        );
+          );
+        });
       },
     );
   }
@@ -252,7 +265,7 @@ class _GavenHome extends State<GavenView> {
             children: [
               const Text(
                 'خشتەی بەخشراو',
-                style: TextStyle(fontFamily: 'DroidArabic'),
+                style: TextStyle(fontFamily: 'DroidArabic',fontSize: 14),
               ),
               Row(mainAxisAlignment: MainAxisAlignment.start, children: [
                 IconButton(
