@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:garmian_house_of_charity/Helpers/configureapi.dart';
-import 'package:garmian_house_of_charity/Models/autotimesetmodel.dart';
 import 'package:garmian_house_of_charity/Models/combinehistory.dart';
 import 'package:garmian_house_of_charity/Models/donationhistorymodel.dart';
 import 'package:garmian_house_of_charity/main.dart';

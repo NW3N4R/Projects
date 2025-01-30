@@ -125,7 +125,6 @@ class HomePage extends State<MainProfileCreation> {
   @override
   Widget build(BuildContext context) {
     final int currentYear = DateTime.now().year + 1;
-    final int lastYear = currentYear - 1;
 
     return Scaffold(
       appBar: AppBar(

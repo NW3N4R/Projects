@@ -29,7 +29,6 @@ class _pvsearch extends State<pvSearch> {
         year = yeartxt.text,
         month = monthtxt.text,
         day = daytxt.text;
-    DateTime dt = DateTime.now();
     if (txtToSearch.isNotEmpty) {
       ConfigureApi.subProfilesList = ConfigureApi.subProfilesList!.where((x) =>
           x.Name.contains(txtToSearch) || x.Address.contains(txtToSearch));
@@ -64,7 +63,7 @@ class _pvsearch extends State<pvSearch> {
     Donatedprofilesview.current.initliazeDataSource();
     setState(() {
       rowCount = ConfigureApi.subProfilesList!.length.toString();
-      sumMoney = ConfigureApi.mainHistories!.where((x)=> ConfigureApi.subProfilesList!.any((z)=>x.History.pid == z.id)).fold(0.0, (sum,x)=> sum! + x.History.amount).toString();
+      sumMoney = ConfigureApi.mainHistories!.where((x)=> ConfigureApi.subProfilesList!.any((z)=>x.History.pid == z.id)).fold(0.0, (sum,x)=> sum + x.History.amount).toString();
     });
   }
 
