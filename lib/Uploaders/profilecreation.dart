@@ -5,7 +5,6 @@ import 'package:garmian_house_of_charity/Models/autotimesetmodel.dart';
 import 'package:garmian_house_of_charity/Models/donatedprofilesmodel.dart';
 import 'package:garmian_house_of_charity/Models/donationhistorymodel.dart';
 import 'package:garmian_house_of_charity/Models/profilecombinedmodel.dart';
-import 'package:garmian_house_of_charity/Views/donatedprofilesview.dart';
 import 'package:garmian_house_of_charity/main.dart';
 
 // ignore: must_be_immutable
@@ -102,6 +101,7 @@ class HomePage extends State<MainProfileCreation> {
       }
     } else {
       if (mounted) {
+        // ignore: use_build_context_synchronously
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('کێشەیەک ڕوویدا دووبارە هەوڵبدەرەوە')),
         );

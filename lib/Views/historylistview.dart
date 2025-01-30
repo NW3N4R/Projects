@@ -3,7 +3,6 @@ import 'package:garmian_house_of_charity/Helpers/configureapi.dart';
 import 'package:garmian_house_of_charity/Models/combinehistory.dart';
 import 'package:garmian_house_of_charity/Updateres/donationupdate.dart';
 import 'package:garmian_house_of_charity/Uploaders/newdonation.dart';
-import 'package:garmian_house_of_charity/Views/donatedprofilesview.dart';
 import 'package:garmian_house_of_charity/main.dart';
 import 'package:syncfusion_flutter_core/theme.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';

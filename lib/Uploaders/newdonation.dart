@@ -53,6 +53,7 @@ class HomePage extends State<Newdonation> {
     String isup = await ConfigureApi().post("SubDonations/post", combined);
     if (isup != '-') {
       await Donatedprofilesview.current.loadData();
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('سەرکەوتوو بوو')),
       );
@@ -71,7 +72,6 @@ class HomePage extends State<Newdonation> {
   @override
   void initState() {
     super.initState();
-    final currentYear = DateTime.now().year;
   }
 
   @override

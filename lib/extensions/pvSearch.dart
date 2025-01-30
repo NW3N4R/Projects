@@ -3,12 +3,14 @@ import 'package:flutter/services.dart';
 import 'package:garmian_house_of_charity/Helpers/configureapi.dart';
 import 'package:garmian_house_of_charity/Views/donatedprofilesview.dart';
 
+// ignore: camel_case_types
 class pvSearch extends StatefulWidget {
   const pvSearch({
     super.key,
   });
 
   @override
+  // ignore: library_private_types_in_public_api
   _pvsearch createState() => _pvsearch();
 }
 

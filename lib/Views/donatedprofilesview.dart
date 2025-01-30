@@ -224,7 +224,7 @@ class GavenDataSource extends DataGridSource {
       if (index % 2 == 1) {
         return Colors.blue[50]!;
       } else {
-        return Colors.white!;
+        return Colors.white;
       }
     }
 
