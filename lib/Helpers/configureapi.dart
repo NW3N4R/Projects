@@ -1,10 +1,17 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:garmian_house_of_charity/Models/combinehistory.dart';
+import 'package:garmian_house_of_charity/Models/donatedprofilesmodel.dart';
 import 'package:http/http.dart' as http;
 
 class ConfigureApi {
   final http.Client _httpClient;
   final Map<String, String> _defaultHeaders;
-  final Uri _baseUri = Uri.parse("http://p4165386.eero.online/api");
+  final Uri _baseUri = Uri.parse("http://gch.aurorapro.org/api");
+  static Iterable<Donatedprofilesmodel>? mainProfilesList = [];
+  static Iterable<Donatedprofilesmodel>? subProfilesList = mainProfilesList;
+  static Iterable<CombinedHistories>? mainHistories = [];
+  static Iterable<CombinedHistories>? subHistories = [];
 
   // Constructor initializes _httpClient and default headers
   ConfigureApi()
@@ -12,39 +19,32 @@ class ConfigureApi {
         _defaultHeaders = {
           'Content-Type': 'application/json',
           "Accept": "application/json",
-          "Cookie":
-              "ApiKey=D3ll7490", // Ensure the API key is included as a cookie
+          "Cookie": "ApiKey=D3ll7490",
         };
 
-  // Request method that takes a subUri and a function to convert JSON to a model (T)
   Future<List<T>?> requestData<T>(
       String subUri, T Function(Map<String, dynamic>) fromJson) async {
     try {
-      // Construct the full URL using the baseUri and subUri
       final Uri fullUri = Uri.parse('$_baseUri/$subUri');
 
-      // Perform the GET request with the headers (including the Cookie header for ApiKey)
       final response = await _httpClient.get(fullUri, headers: _defaultHeaders);
-
-      // Check if the request was successful
       if (response.statusCode == 200) {
         final responseBody = response.body;
         final List<dynamic> json = jsonDecode(responseBody);
 
-        // Map the JSON to a list of objects of type T
         return json
             .map((item) => fromJson(item as Map<String, dynamic>))
             .toList();
       } else {
-        // Handle non-2xx responses (e.g., 404, 500)
         return null;
       }
     } catch (e) {
+      debugPrint('exception from api response $e');
       return null;
     }
   }
 
-  Future<bool> post(String suburi, Object model) async {
+  Future<String> post(String suburi, Object model) async {
     final body = json.encode(model);
     Uri uri = Uri.parse('$_baseUri/$suburi');
     // Send a POST request to the API
@@ -55,15 +55,14 @@ class ConfigureApi {
     );
 
     if (response.statusCode == 200) {
-      return true;
+      return response.body;
     }
 
-    return false;
+    return '-';
   }
 
   Future<bool> put(String suburi, Object model) async {
     final body = json.encode(model);
-    print(body);
     Uri uri = Uri.parse('$_baseUri/$suburi');
     // Send a POST request to the API
     final response = await http.put(
@@ -71,7 +70,6 @@ class ConfigureApi {
       headers: _defaultHeaders,
       body: body,
     );
-    print(response.body);
     if (response.statusCode == 200) {
       return true;
     }
@@ -85,7 +83,6 @@ class ConfigureApi {
       uri,
       headers: _defaultHeaders,
     );
-    print(response.statusCode);
     if (response.statusCode == 200) {
       return true;
     }
@@ -102,7 +99,6 @@ class ConfigureApi {
       final String pass = jsonDecode(responseBody);
       return password == pass;
     } else {
-      print(response.reasonPhrase);
       return false;
     }
   }

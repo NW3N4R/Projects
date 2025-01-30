@@ -1,6 +1,6 @@
 class HomeModel {
   String title;
-  int number;
+  double number;
   String no;
 
   HomeModel({
@@ -12,7 +12,7 @@ class HomeModel {
   factory HomeModel.fromJson(Map<String, dynamic> json) {
     return HomeModel(
       title: json['title'] as String,
-      number: json['number'] as int,
+      number:  (json['number'] as num).toDouble(),
       no: json['_No'] as String,
     );
   }

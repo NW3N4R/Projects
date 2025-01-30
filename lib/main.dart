@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:garmian_house_of_charity/Views/gavenviews.dart';
+import 'package:garmian_house_of_charity/Views/donatedprofilesview.dart';
 import 'package:garmian_house_of_charity/Views/home.dart'; // Import your home page
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:garmian_house_of_charity/lockscreen.dart';
+import 'package:garmian_house_of_charity/Views/lockscreen.dart';
 
 void main() {
   runApp(MaterialApp(
@@ -49,7 +49,7 @@ class _TabbedAppState extends State<TabbedApp> {
           color: Colors.white,
           child: selectedIndex == 0
               ? HomeView() // Show HomeView if selectedIndex is 0
-              : GavenView(), // Show GavenHome for other tabs
+              : Donatedprofilesview(), // Show GavenHome for other tabs
         ),
         bottomNavigationBar: BottomNavigationBar(
           currentIndex: selectedIndex, // Highlight the selected tab
