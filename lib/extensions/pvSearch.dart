@@ -63,14 +63,23 @@ class _pvsearch extends State<pvSearch> {
     Donatedprofilesview.current.initliazeDataSource();
     setState(() {
       rowCount = ConfigureApi.subProfilesList!.length.toString();
-      sumMoney = ConfigureApi.mainHistories!.where((x)=> ConfigureApi.subProfilesList!.any((z)=>x.History.pid == z.id)).fold(0.0, (sum,x)=> sum + x.History.amount).toString();
+      sumMoney = ConfigureApi.mainHistories!
+          .where((x) =>
+              ConfigureApi.subProfilesList!.any((z) => x.History.pid == z.id))
+          .fold(0.0, (sum, x) => sum + x.History.amount)
+          .toString();
     });
   }
 
   @override
   void initState() {
     super.initState();
-    // rowCount = ConfigureApi.subProfilesList!.length.toString();
+    rowCount = ConfigureApi.subProfilesList!.length.toString();
+    sumMoney = ConfigureApi.mainHistories!
+        .where((x) =>
+            ConfigureApi.subProfilesList!.any((z) => x.History.pid == z.id))
+        .fold(0.0, (sum, x) => sum + x.History.amount)
+        .toString();
   }
 
   @override
@@ -111,7 +120,6 @@ class _pvsearch extends State<pvSearch> {
                     child: TextField(
                       keyboardType: TextInputType.number,
                       controller: yeartxt,
-                   
                       decoration: InputDecoration(
                         contentPadding: const EdgeInsets.only(
                             left: 4, right: 4, top: 1, bottom: 1),
@@ -137,7 +145,6 @@ class _pvsearch extends State<pvSearch> {
                     child: TextField(
                       keyboardType: TextInputType.number,
                       controller: monthtxt,
-                  
                       decoration: InputDecoration(
                         contentPadding: const EdgeInsets.only(
                             left: 4, right: 4, top: 1, bottom: 1),
@@ -162,7 +169,6 @@ class _pvsearch extends State<pvSearch> {
                   Expanded(
                     child: TextField(
                       controller: daytxt,
-                   
                       keyboardType: TextInputType.number,
                       decoration: InputDecoration(
                         contentPadding: const EdgeInsets.only(
@@ -218,7 +224,7 @@ class _pvsearch extends State<pvSearch> {
               ),
               TextButton(
                 onPressed: () {
-                search();
+                  search();
                 },
                 child: const Text(
                   'وەرگرتن',

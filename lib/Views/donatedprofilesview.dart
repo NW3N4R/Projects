@@ -49,8 +49,6 @@ class _donationprofileview extends State<Donatedprofilesview> {
 
   void initliazeDataSource() {
     setState(() {
-      // ConfigureApi.subHistories = ConfigureApi.mainHistories;
-      // ConfigureApi.subProfilesList = ConfigureApi.mainProfilesList;
       _gavenDataSource =
           GavenDataSource(ConfigureApi.subProfilesList?.toList() ?? []);
     });

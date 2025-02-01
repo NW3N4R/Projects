@@ -11,7 +11,7 @@ class ConfigureApi {
   static Iterable<Donatedprofilesmodel>? mainProfilesList = [];
   static Iterable<Donatedprofilesmodel>? subProfilesList = mainProfilesList;
   static Iterable<CombinedHistories>? mainHistories = [];
-  static Iterable<CombinedHistories>? subHistories = [];
+  static Iterable<CombinedHistories>? subHistories = mainHistories;
 
   // Constructor initializes _httpClient and default headers
   ConfigureApi()
@@ -21,7 +21,7 @@ class ConfigureApi {
           "Accept": "application/json",
           "Cookie": "ApiKey=D3ll7490",
         };
-
+//07707738907
   Future<List<T>?> requestData<T>(
       String subUri, T Function(Map<String, dynamic>) fromJson) async {
     try {
