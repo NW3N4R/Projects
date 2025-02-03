@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:garmian_house_of_charity/Views/donatedprofilesview.dart';
 import 'package:garmian_house_of_charity/Views/home.dart'; // Import your home page
+// ignore: depend_on_referenced_packages
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:garmian_house_of_charity/Views/lockscreen.dart';
 
