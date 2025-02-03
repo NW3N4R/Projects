@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:garmian_house_of_charity/Helpers/configureapi.dart';
+import 'package:garmian_house_of_charity/configureapi.dart';
 import 'package:garmian_house_of_charity/Views/donatedprofilesview.dart';
 
 // ignore: camel_case_types
@@ -23,47 +23,65 @@ String rowCount = "0", sumMoney = "0";
 // ignore: camel_case_types
 class _pvsearch extends State<pvSearch> {
   void search() {
-    ConfigureApi.subProfilesList = ConfigureApi.mainProfilesList;
-    var hisotries = ConfigureApi.mainHistories;
-    String txtToSearch = searchtxt.text,
-        year = yeartxt.text,
-        month = monthtxt.text,
-        day = daytxt.text;
-    if (txtToSearch.isNotEmpty) {
-      ConfigureApi.subProfilesList = ConfigureApi.subProfilesList!.where((x) =>
-          x.Name.contains(txtToSearch) || x.Address.contains(txtToSearch));
+    // Initialize with the original lists (no need to re-assign if they are already the same)
+    ConfigureApi.subProfilesList = ConfigureApi
+        .mainProfilesList; // Create a copy to avoid modifying the original list
+    ConfigureApi.subHistories = ConfigureApi.mainHistories; // Create a copy
+
+    setState(() {
+      monthtxt.text =
+          monthtxt.text.length == 1 ? '0${monthtxt.text}' : monthtxt.text;
+      daytxt.text = daytxt.text.length == 1 ? '0${daytxt.text}' : daytxt.text;
+    });
+
+    String txtToSearch = searchtxt.text;
+    String year = yeartxt.text;
+    String month = monthtxt.text;
+    String day = daytxt.text;
+
+    // 1. Create a Map for fast History lookups:  This is the BIGGEST performance improvement.
+    final historyMap = <int, List<String>>{}; // Map: pid -> [year, month, day]
+    for (final history in ConfigureApi.subHistories!) {
+      final dateParts = history.History.fixedDate.toString().split('-');
+      historyMap[history.History.pid] = dateParts;
     }
-    if (year.isNotEmpty) {
-      ConfigureApi.subProfilesList = ConfigureApi.subProfilesList!
-          .where((x) => hisotries!.any((z) {
-                List<String> date = z.History.fixedDate.toString().split('-');
-                return x.id == z.History.pid &&
-                    date[0] == year; // Add your specific condition here
-              }))
-          .toList();
-    }
-    if (month.isNotEmpty) {
-      ConfigureApi.subProfilesList = ConfigureApi.subProfilesList!
-          .where((x) => hisotries!.any((z) {
-                List<String> date = z.History.fixedDate.toString().split('-');
-                return x.id == z.History.pid &&
-                    date[1] == month; // Add your specific condition here
-              }))
-          .toList();
-    }
-    if (day.isNotEmpty) {
-      ConfigureApi.subProfilesList = ConfigureApi.subProfilesList!
-          .where((x) => hisotries!.any((z) {
-                List<String> date = z.History.fixedDate.toString().split('-');
-                return x.id == z.History.pid &&
-                    date[2] == day; // Add your specific condition here
-              }))
-          .toList();
-    }
+
+    ConfigureApi.subProfilesList =
+        ConfigureApi.subProfilesList!.where((profile) {
+      // 2. Text Search (Do this FIRST to reduce the list size)
+      if (txtToSearch.isNotEmpty &&
+          !profile.Name.contains(txtToSearch) &&
+          !profile.Address.contains(txtToSearch)) {
+        return false; // Filter out if text search doesn't match
+      }
+
+      // 3. Date Filtering using the Map (Much faster!)
+      if (year.isNotEmpty || month.isNotEmpty || day.isNotEmpty) {
+        final dateParts = historyMap[profile.id];
+        if (dateParts == null) {
+          return false; // Profile has no matching history
+        }
+
+        if (year.isNotEmpty && dateParts[0] != year) {
+          return false;
+        }
+        if (month.isNotEmpty && dateParts[1] != month) {
+          return false;
+        }
+        if (day.isNotEmpty && dateParts[2] != day) {
+          return false;
+        }
+      }
+
+      return true; // Keep the profile if all conditions pass
+    }).toList();
+
     Donatedprofilesview.current.initliazeDataSource();
     setState(() {
       rowCount = ConfigureApi.subProfilesList!.length.toString();
-      sumMoney = ConfigureApi.mainHistories!
+
+      // 4. Calculate sumMoney efficiently (after filtering)
+      sumMoney = ConfigureApi.subHistories!
           .where((x) =>
               ConfigureApi.subProfilesList!.any((z) => x.History.pid == z.id))
           .fold(0.0, (sum, x) => sum + x.History.amount)

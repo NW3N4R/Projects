@@ -8,12 +8,13 @@ class ConfigureApi {
   final http.Client _httpClient;
   final Map<String, String> _defaultHeaders;
   final Uri _baseUri = Uri.parse("http://gch.aurorapro.org/api");
-  static Iterable<Donatedprofilesmodel>? mainProfilesList = [];
-  static Iterable<Donatedprofilesmodel>? subProfilesList = mainProfilesList;
-  static Iterable<CombinedHistories>? mainHistories = [];
-  static Iterable<CombinedHistories>? subHistories = mainHistories;
+ static List<Donatedprofilesmodel>? mainProfilesList = [];
+  static List<Donatedprofilesmodel>? subProfilesList = mainProfilesList;
 
-  // Constructor initializes _httpClient and default headers
+  static List<CombinedHistories>? mainHistories = [];
+  static List<CombinedHistories>? subHistories = mainHistories;
+
+
   ConfigureApi()
       : _httpClient = http.Client(),
         _defaultHeaders = {
@@ -21,13 +22,13 @@ class ConfigureApi {
           "Accept": "application/json",
           "Cookie": "ApiKey=D3ll7490",
         };
-//07707738907
   Future<List<T>?> requestData<T>(
       String subUri, T Function(Map<String, dynamic>) fromJson) async {
     try {
       final Uri fullUri = Uri.parse('$_baseUri/$subUri');
 
       final response = await _httpClient.get(fullUri, headers: _defaultHeaders);
+      debugPrint('response is ${response.reasonPhrase}');
       if (response.statusCode == 200) {
         final responseBody = response.body;
         final List<dynamic> json = jsonDecode(responseBody);
@@ -89,7 +90,8 @@ class ConfigureApi {
     return false;
   }
 
-  Future<bool> Login(String password) async {
+  // ignore: non_constant_identifier_names
+  Future<String> Login(String password) async {
     // Construct the full URL using the baseUri and subUri
     final Uri fullUri = Uri.parse('$_baseUri/home/Credentials');
 
@@ -97,9 +99,9 @@ class ConfigureApi {
     if (response.statusCode == 200) {
       final responseBody = response.body;
       final String pass = jsonDecode(responseBody);
-      return password == pass;
+      return  pass;
     } else {
-      return false;
+      return "-null";
     }
   }
 }

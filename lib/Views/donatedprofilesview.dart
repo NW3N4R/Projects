@@ -8,11 +8,12 @@ import 'package:garmian_house_of_charity/Views/historylistview.dart';
 import 'package:garmian_house_of_charity/extensions/pvSearch.dart';
 import 'package:syncfusion_flutter_core/theme.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
-import 'package:garmian_house_of_charity/Helpers/configureapi.dart';
+import 'package:garmian_house_of_charity/configureapi.dart';
 
 class Donatedprofilesview extends StatefulWidget {
   const Donatedprofilesview({super.key});
   static _donationprofileview? _current;
+  // ignore: library_private_types_in_public_api
   static _donationprofileview get current => _current!;
   @override
   // ignore: library_private_types_in_public_api
@@ -25,32 +26,34 @@ class _donationprofileview extends State<Donatedprofilesview> {
   @override
   void initState() {
     super.initState();
-    loadData();
     Donatedprofilesview._current = this;
+    initliazeDataSource();
   }
-
-  Future<void> loadData() async {
-    await Future.any([loadprofiles(), loadhistories()]);
-
+  void loadData() async {
+    loadprofiles(); 
+    loadhistories(); 
     initliazeDataSource();
   }
 
-  Future<void> loadprofiles() async {
-    ConfigureApi.mainProfilesList = await ConfigureApi()
-        .requestData<Donatedprofilesmodel>(
-            "donation", (json) => Donatedprofilesmodel.fromJson(json));
-  }
+Future<void> loadprofiles() async {
+  List<Donatedprofilesmodel>? profiles = await ConfigureApi()
+      .requestData<Donatedprofilesmodel>(
+          "donation", (json) => Donatedprofilesmodel.fromJson(json));
 
-  Future<void> loadhistories() async {
-    ConfigureApi.mainHistories = await ConfigureApi()
-        .requestData<CombinedHistories>(
-            "SubDonations", (json) => CombinedHistories.fromJson(json));
-  }
+  ConfigureApi.mainProfilesList = profiles!; // Update the ValueNotifier
+}
 
+Future<void> loadhistories() async {
+  List<CombinedHistories>? histories = await ConfigureApi()
+      .requestData<CombinedHistories>(
+          "SubDonations", (json) => CombinedHistories.fromJson(json));
+
+  ConfigureApi.mainHistories = histories!; // Correct way to update ValueNotifier
+}
   void initliazeDataSource() {
     setState(() {
       _gavenDataSource =
-          GavenDataSource(ConfigureApi.subProfilesList?.toList() ?? []);
+          GavenDataSource(ConfigureApi.subProfilesList!.toList());
     });
   }
 
@@ -67,6 +70,9 @@ class _donationprofileview extends State<Donatedprofilesview> {
               textAlign: TextAlign.start,
             ),
             Row(mainAxisAlignment: MainAxisAlignment.start, children: [
+                IconButton(
+                  onPressed: () =>loadData(),
+                  icon: const Icon(Icons.refresh)),
               IconButton(
                   onPressed: () {
                     Navigator.push(
@@ -121,7 +127,7 @@ class _donationprofileview extends State<Donatedprofilesview> {
               child: SfDataGrid(
                 allowPullToRefresh: false,
                 allowSorting: false,
-                allowSwiping: false,
+                allowSwiping: true,
                 source: _gavenDataSource,
                 gridLinesVisibility: GridLinesVisibility.none,
                 columns: <GridColumn>[

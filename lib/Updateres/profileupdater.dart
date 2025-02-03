@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:garmian_house_of_charity/Helpers/configureapi.dart';
+import 'package:garmian_house_of_charity/configureapi.dart';
 import 'package:garmian_house_of_charity/Models/donatedprofilesmodel.dart';
 import 'package:garmian_house_of_charity/main.dart';
 

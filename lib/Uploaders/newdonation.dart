@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:garmian_house_of_charity/Helpers/configureapi.dart';
+import 'package:garmian_house_of_charity/configureapi.dart';
 import 'package:garmian_house_of_charity/Models/autotimesetmodel.dart';
 import 'package:garmian_house_of_charity/Models/combinehistory.dart';
 import 'package:garmian_house_of_charity/Models/donationhistorymodel.dart';
@@ -52,8 +52,7 @@ class HomePage extends State<Newdonation> {
 
     String isup = await ConfigureApi().post("SubDonations/post", combined);
     if (isup != '-') {
-      await Donatedprofilesview.current.loadData();
-      // ignore: use_build_context_synchronously
+      // ConfigureApi.mainHistories.add(combined);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('سەرکەوتوو بوو')),
       );

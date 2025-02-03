@@ -3,10 +3,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:garmian_house_of_charity/Helpers/configureapi.dart';
+import 'package:garmian_house_of_charity/Models/combinehistory.dart';
+import 'package:garmian_house_of_charity/Models/donatedprofilesmodel.dart';
+import 'package:garmian_house_of_charity/configureapi.dart';
 import 'package:garmian_house_of_charity/main.dart';
-
-
 
 class Lockscreen extends StatefulWidget {
   const Lockscreen({super.key});
@@ -16,30 +16,63 @@ class Lockscreen extends StatefulWidget {
   _lockscreen createState() => _lockscreen();
 }
 
+String isAuth = "-UnSet";
+
 class _lockscreen extends State<Lockscreen> {
   int selectedIndex = 0;
   @override
   void initState() {
     super.initState();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    loadData();
   }
+
+  void loadData() async {
+    isAuth = await ConfigureApi().Login(_passcontroller.text);
+    loadprofiles(); // Runs in the background
+    loadhistories(); // Runs in the background
+  }
+
+Future<void> loadprofiles() async {
+  List<Donatedprofilesmodel>? profiles = await ConfigureApi()
+      .requestData<Donatedprofilesmodel>(
+          "donation", (json) => Donatedprofilesmodel.fromJson(json));
+
+  ConfigureApi.mainProfilesList = profiles!; // Update the ValueNotifier
+}
+
+Future<void> loadhistories() async {
+  List<CombinedHistories>? histories = await ConfigureApi()
+      .requestData<CombinedHistories>(
+          "SubDonations", (json) => CombinedHistories.fromJson(json));
+
+  ConfigureApi.mainHistories = histories!; // Correct way to update ValueNotifier
+}
+
+
   String? _errorText;
   final TextEditingController _passcontroller = TextEditingController();
 
   void login(BuildContext context) async {
-    bool isAuth = await ConfigureApi().Login(_passcontroller.text);
-    if (isAuth) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => TabbedApp(
-            initialIndex: 0,
+    String isAuth = await ConfigureApi().Login(_passcontroller.text);
+    if (isAuth != "-null" || isAuth != "-UnSet") {
+      if (_passcontroller.text == isAuth) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => TabbedApp(
+              initialIndex: 0,
+            ),
           ),
-        ),
-      );
+        );
+      } else {
+        setState(() {
+          _errorText = 'وشەی نهێنی هەڵەیە';
+        });
+      }
     } else {
       setState(() {
-        _errorText = 'وشەی نهێنی هەڵەیە';
+        _errorText = 'هەڵەی تەکنیکی';
       });
     }
   }
@@ -84,7 +117,7 @@ class _lockscreen extends State<Lockscreen> {
                   decoration: InputDecoration(
                     hintText: 'وشەی نهێنی؟',
                     label: Text('وشەی نهێنی'),
-                    errorText:   _errorText,
+                    errorText: _errorText,
                     border: OutlineInputBorder(
                       // Default border
                       borderRadius: BorderRadius.circular(2), // Rounded corners
